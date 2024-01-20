@@ -1,18 +1,31 @@
 import cv2
 import numpy as np
 
-def remove_hair(input_image):
-    # Convert the image to grayscale
-    gray_image = cv2.cvtColor(input_image, cv2.COLOR_BGR2GRAY)
+def remove_hair(image, min_pixels=30):
+    grayscale = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    kernel = cv2.getStructuringElement(1, (15, 15))
+    blackhat = cv2.morphologyEx(grayscale, cv2.MORPH_BLACKHAT, kernel)
+    _, blackhat_bin = cv2.threshold(blackhat, 10, 255, cv2.THRESH_BINARY)
 
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
-    blackhat = cv2.morphologyEx(gray_image, cv2.MORPH_BLACKHAT, kernel)
+    # Skeletonize
+    skeleton = cv2.ximgproc.thinning(blackhat_bin)
 
-    ret, mask = cv2.threshold(blackhat, 10, 255, cv2.THRESH_BINARY)
+    # Connected component analysis
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(skeleton, 8, cv2.CV_32S)
 
-    hair_removed_image = cv2.inpaint(input_image, mask, 3, cv2.INPAINT_TELEA)
-    
-    return hair_removed_image
+    # Create mask for regions larger than min_pixels
+    mask = np.zeros_like(skeleton)
+    for label in range(1, num_labels):  # Skip the background label
+        if stats[label, cv2.CC_STAT_AREA] >= min_pixels:
+            mask[labels == label] = 255
+
+    # Dilate mask
+    dilated_mask = cv2.dilate(mask, np.ones((6, 6), np.uint8), iterations=1)
+
+    # Inpaint
+    inpainted_image = cv2.inpaint(image, dilated_mask, 3, cv2.INPAINT_TELEA)
+
+    return inpainted_image
 
 def apply_color_constancy(img, power=6, gamma=1.8):
     img_dtype = img.dtype
