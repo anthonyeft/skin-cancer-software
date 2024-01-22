@@ -4,11 +4,10 @@ from model import caformer_b36
 def test_caformer_b36():
     # Create a CAFormerB36 model
     model = caformer_b36(num_classes=7)
-    model.load_state_dict(torch.load("caformer_b36.pth", map_location=torch.device("cpu")))
-    breakpoint()
+    model.load_state_dict(torch.load("D:\\weights\\caformer_b36.pth", map_location=torch.device("cpu")))
 
     # Create a random tensor simulating a batch of images (batch size, channels, height, width)
-    # For example, a batch of 4 images with 3 channels (RGB) and size 224x224
+    # For example, a batch of 4 images with 3 channels (RGB) and size 384x384
     x = torch.rand(4, 3, 384, 384)
 
     # Forward pass through the model

@@ -1,8 +1,5 @@
-# CAFormerfrom MetaFormer Baselines for Vision https://arxiv.org/abs/2210.13452
-
+from collections import OrderedDict
 from functools import partial
-from itertools import repeat
-import collections.abc
 
 import torch
 import torch.nn as nn
@@ -10,49 +7,14 @@ import torch.nn.functional as F
 from torch import Tensor
 from torch.jit import Final
 
+from layers.weight_init import trunc_normal_
+from layers.drop import DropPath
+from layers.selectpool import SelectAdaptivePool2d
+from layers.norm import GroupNorm1, LayerNorm, LayerNorm2d
+from layers.mlp import Mlp
+from layers.use_fused_attention import use_fused_attn
 
-# From PyTorch internals
-def _ntuple(n):
-    def parse(x):
-        if isinstance(x, collections.abc.Iterable) and not isinstance(x, str):
-            return tuple(x)
-        return tuple(repeat(x, n))
-    return parse
 
-to_2tuple = _ntuple(2)
-
-def drop_path(x, drop_prob: float = 0., training: bool = False, scale_by_keep: bool = True):
-    """Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks).
-
-    This is the same as the DropConnect impl I created for EfficientNet, etc networks, however,
-    the original name is misleading as 'Drop Connect' is a different form of dropout in a separate paper...
-    See discussion: https://github.com/tensorflow/tpu/issues/494#issuecomment-532968956 ... I've opted for
-    changing the layer and argument names to 'drop path' rather than mix DropConnect as a layer name and use
-    'survival rate' as the argument.
-
-    """
-    if drop_prob == 0. or not training:
-        return x
-    keep_prob = 1 - drop_prob
-    shape = (x.shape[0],) + (1,) * (x.ndim - 1)  # work with diff dim tensors, not just 2D ConvNets
-    random_tensor = x.new_empty(shape).bernoulli_(keep_prob)
-    if keep_prob > 0.0 and scale_by_keep:
-        random_tensor.div_(keep_prob)
-    return x * random_tensor
-
-class DropPath(nn.Module):
-    """Drop paths (Stochastic Depth) per sample  (when applied in main path of residual blocks).
-    """
-    def __init__(self, drop_prob: float = 0., scale_by_keep: bool = True):
-        super(DropPath, self).__init__()
-        self.drop_prob = drop_prob
-        self.scale_by_keep = scale_by_keep
-
-    def forward(self, x):
-        return drop_path(x, self.drop_prob, self.training, self.scale_by_keep)
-
-    def extra_repr(self):
-        return f'drop_prob={round(self.drop_prob,3):0.3f}'
 
 class Stem(nn.Module):
     """
@@ -301,7 +263,7 @@ class MlpHead(nn.Module):
     def __init__(
             self,
             dim,
-            num_classes=1000,
+            num_classes=7,
             mlp_ratio=4,
             act_layer=SquaredReLU,
             norm_layer=LayerNorm,
@@ -441,10 +403,7 @@ class MetaFormerStage(nn.Module):
         if not self.use_nchw:
             x = x.reshape(B, C, -1).transpose(1, 2)
 
-        if self.grad_checkpointing and not torch.jit.is_scripting():
-            x = checkpoint_seq(self.blocks, x)
-        else:
-            x = self.blocks(x)
+        x = self.blocks(x)
 
         if not self.use_nchw:
             x = x.transpose(1, 2).reshape(B, C, H, W)
@@ -481,7 +440,7 @@ class MetaFormer(nn.Module):
     def __init__(
             self,
             in_chans=3,
-            num_classes=1000,
+            num_classes=7,
             global_pool='avg',
             depths=(2, 2, 6, 2),
             dims=(64, 128, 320, 512),
@@ -611,10 +570,7 @@ class MetaFormer(nn.Module):
 
     def forward_features(self, x: Tensor):
         x = self.stem(x)
-        if self.grad_checkpointing and not torch.jit.is_scripting():
-            x = checkpoint_seq(self.stages, x)
-        else:
-            x = self.stages(x)
+        x = self.stages(x)
         return x
 
     def forward(self, x: Tensor):
@@ -623,11 +579,54 @@ class MetaFormer(nn.Module):
         return x
 
 
-def caformer_b36(**kwargs):
-    model = MetaFormer(
+# this works but it's long and breaks backwards compatability with weights from the poolformer-only impl
+def checkpoint_filter_fn(state_dict, model):
+    if 'stem.conv.weight' in state_dict:
+        return state_dict
+
+    import re
+    out_dict = {}
+    is_poolformerv1 = 'network.0.0.mlp.fc1.weight' in state_dict
+    model_state_dict = model.state_dict()
+    for k, v in state_dict.items():
+        if is_poolformerv1:
+            k = re.sub(r'layer_scale_([0-9]+)', r'layer_scale\1.scale', k)
+            k = k.replace('network.1', 'downsample_layers.1')
+            k = k.replace('network.3', 'downsample_layers.2')
+            k = k.replace('network.5', 'downsample_layers.3')
+            k = k.replace('network.2', 'network.1')
+            k = k.replace('network.4', 'network.2')
+            k = k.replace('network.6', 'network.3')
+            k = k.replace('network', 'stages')
+
+        k = re.sub(r'downsample_layers.([0-9]+)', r'stages.\1.downsample', k)
+        k = k.replace('downsample.proj', 'downsample.conv')
+        k = k.replace('patch_embed.proj', 'patch_embed.conv')
+        k = re.sub(r'([0-9]+).([0-9]+)', r'\1.blocks.\2', k)
+        k = k.replace('stages.0.downsample', 'patch_embed')
+        k = k.replace('patch_embed', 'stem')
+        k = k.replace('post_norm', 'norm')
+        k = k.replace('pre_norm', 'norm')
+        k = re.sub(r'^head', 'head.fc', k)
+        k = re.sub(r'^norm', 'head.norm', k)
+
+        if v.shape != model_state_dict[k] and v.numel() == model_state_dict[k].numel():
+            v = v.reshape(model_state_dict[k].shape)
+
+        out_dict[k] = v
+    return out_dict
+
+
+def _create_metaformer(**kwargs):
+    # Create an instance of the MetaFormer model
+    model = MetaFormer(**kwargs)
+    return model
+
+def caformer_b36(**kwargs) -> MetaFormer:
+    model_kwargs = dict(
         depths=[3, 12, 18, 3],
         dims=[128, 256, 512, 768],
         token_mixers=[SepConv, SepConv, Attention, Attention],
-        head_fn=MlpHead,
+        norm_layers=[LayerNorm2dNoBias] * 2 + [LayerNormNoBias] * 2,
         **kwargs)
-    return model
+    return _create_metaformer(**model_kwargs)
