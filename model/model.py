@@ -365,7 +365,6 @@ class MetaFormerStage(nn.Module):
     ):
         super().__init__()
 
-        self.grad_checkpointing = False
         self.use_nchw = not issubclass(token_mixer, Attention)
 
         # don't downsample if in_chs and out_chs are the same
@@ -392,9 +391,7 @@ class MetaFormerStage(nn.Module):
             **kwargs,
         ) for i in range(depth)])
 
-    @torch.jit.ignore
-    def set_grad_checkpointing(self, enable=True):
-        self.grad_checkpointing = enable
+
 
     def forward(self, x: Tensor):
         x = self.downsample(x)
@@ -479,7 +476,6 @@ class MetaFormer(nn.Module):
         if not isinstance(res_scale_init_values, (list, tuple)):
             res_scale_init_values = [res_scale_init_values] * self.num_stages
 
-        self.grad_checkpointing = False
         self.feature_info = []
 
         self.stem = Stem(
@@ -538,12 +534,6 @@ class MetaFormer(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
     @torch.jit.ignore
-    def set_grad_checkpointing(self, enable=True):
-        self.grad_checkpointing = enable
-        for stage in self.stages:
-            stage.set_grad_checkpointing(enable=enable)
-
-    @torch.jit.ignore
     def get_classifier(self):
         return self.head.fc
 
@@ -577,44 +567,6 @@ class MetaFormer(nn.Module):
         x = self.forward_features(x)
         x = self.forward_head(x)
         return x
-
-
-# this works but it's long and breaks backwards compatability with weights from the poolformer-only impl
-def checkpoint_filter_fn(state_dict, model):
-    if 'stem.conv.weight' in state_dict:
-        return state_dict
-
-    import re
-    out_dict = {}
-    is_poolformerv1 = 'network.0.0.mlp.fc1.weight' in state_dict
-    model_state_dict = model.state_dict()
-    for k, v in state_dict.items():
-        if is_poolformerv1:
-            k = re.sub(r'layer_scale_([0-9]+)', r'layer_scale\1.scale', k)
-            k = k.replace('network.1', 'downsample_layers.1')
-            k = k.replace('network.3', 'downsample_layers.2')
-            k = k.replace('network.5', 'downsample_layers.3')
-            k = k.replace('network.2', 'network.1')
-            k = k.replace('network.4', 'network.2')
-            k = k.replace('network.6', 'network.3')
-            k = k.replace('network', 'stages')
-
-        k = re.sub(r'downsample_layers.([0-9]+)', r'stages.\1.downsample', k)
-        k = k.replace('downsample.proj', 'downsample.conv')
-        k = k.replace('patch_embed.proj', 'patch_embed.conv')
-        k = re.sub(r'([0-9]+).([0-9]+)', r'\1.blocks.\2', k)
-        k = k.replace('stages.0.downsample', 'patch_embed')
-        k = k.replace('patch_embed', 'stem')
-        k = k.replace('post_norm', 'norm')
-        k = k.replace('pre_norm', 'norm')
-        k = re.sub(r'^head', 'head.fc', k)
-        k = re.sub(r'^norm', 'head.norm', k)
-
-        if v.shape != model_state_dict[k] and v.numel() == model_state_dict[k].numel():
-            v = v.reshape(model_state_dict[k].shape)
-
-        out_dict[k] = v
-    return out_dict
 
 
 def _create_metaformer(**kwargs):
