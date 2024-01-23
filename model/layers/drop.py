@@ -7,9 +7,7 @@ DropBlock: A regularization method for convolutional networks (https://arxiv.org
 Deep Networks with Stochastic Depth (https://arxiv.org/abs/1603.09382)
 """
 
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 def drop_path(x, drop_prob: float = 0., training: bool = False, scale_by_keep: bool = True):

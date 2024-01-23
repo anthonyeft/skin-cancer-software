@@ -4,8 +4,6 @@ Norm layer definitions that support fast norm and consistent channel arg order (
 
 Hacked together by / Copyright 2022 Ross Wightman
 """
-import numbers
-from typing import Tuple
 
 import torch
 import torch.nn as nn
