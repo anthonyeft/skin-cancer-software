@@ -1,44 +1,40 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QFileDialog
-from PyQt5.QtGui import QPixmap, QImage
-from PyQt5.QtCore import Qt, QTimer
-
 import cv2
 import torch
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
-from preprocessing import apply_color_constancy, remove_hair
+from preprocessing import apply_color_constancy
 from model.model import caformer_b36
 
-class MainWindow(QMainWindow):
+import sys
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QFileDialog, QStackedLayout
+from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtCore import Qt
+
+from introduction import IntroductionPage
+
+diagnosis_mapping = {
+    0: "Melanoma",
+    1: "Benign Melanoctyic Nevi",
+    2: "Carcinoma (Basal Cell or Squamous Cell)",
+    3: "Actinic Keratoses",
+    4: "Benign Keratosis",
+    5: "Dermafibroma",
+    6: "Vascular Lesion"
+}
+
+class MainApplication(QWidget):
     def __init__(self):
         super().__init__()
-        self.diagnosis_mapping = {
-            0: "Melanoma",
-            1: "Benign Melanoctyic Nevi",
-            2: "Carcinoma (Basal Cell or Squamous Cell)",
-            3: "Actinic Keratoses",
-            4: "Benign Keratosis",
-            5: "Dermafibroma",
-            6: "Vascular Lesion"
-        }
         self.initUI()
         self.loadModel()
 
     def initUI(self):
-        self.setWindowTitle("Skin Lesion Diagnosis App")
-        self.setGeometry(100, 100, 800, 600)
-        self.createLayouts()
-        self.setCentralWidget(self.centralWidget)
-
-    def createLayouts(self):
         self.mainLayout = QHBoxLayout()
         self.createLeftPanel()
         self.createRightPanel()
         self.mainLayout.addWidget(self.leftPanel)
         self.mainLayout.addWidget(self.rightPanel)
-        self.centralWidget = QWidget()
-        self.centralWidget.setLayout(self.mainLayout)
+        self.setLayout(self.mainLayout)
 
     def createLeftPanel(self):
         self.leftPanel = QWidget()
@@ -95,13 +91,12 @@ class MainWindow(QMainWindow):
             image = cv2.imread(self.currentImagePath)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             color_constancy_img = apply_color_constancy(image)
-            hair_removed_img = remove_hair(color_constancy_img)
             
             # Update UI with the preprocessed image
-            self.updateImageLabel(hair_removed_img)
+            self.updateImageLabel(color_constancy_img)
 
             # Apply test_transform to the image
-            transformed = test_transform(image=hair_removed_img)
+            transformed = test_transform(image=color_constancy_img)
             input_tensor = transformed['image'].unsqueeze(0)  # Add batch dimension
 
             # Make prediction
@@ -109,7 +104,7 @@ class MainWindow(QMainWindow):
             predicted_class = torch.argmax(output, dim=1).item()
 
             # Map the predicted label number to its corresponding diagnosis name
-            diagnosis_name = self.diagnosis_mapping.get(predicted_class)
+            diagnosis_name = diagnosis_mapping.get(predicted_class)
             
             # Update the diagnosis label in the UI
             self.diagnosisLabel.setText(f"Diagnosis: {diagnosis_name}")
@@ -142,6 +137,21 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    mainWindow = MainWindow()
-    mainWindow.show()
+    mainWindow = QMainWindow()
+    mainWindow.setWindowTitle("Skin Lesion Diagnosis App")
+    mainWindow.setGeometry(100, 100, 1200, 800)
+    
+    stackedLayout = QStackedLayout()
+    
+    introPage = IntroductionPage(lambda layout: stackedLayout.setCurrentIndex(1))
+    mainPage = MainApplication()
+    
+    stackedLayout.addWidget(introPage)
+    stackedLayout.addWidget(mainPage)
+    
+    centralWidget = QWidget()
+    centralWidget.setLayout(stackedLayout)
+    mainWindow.setCentralWidget(centralWidget)
+    
+    mainWindow.showMaximized()
     sys.exit(app.exec_())
