@@ -6,9 +6,9 @@ from preprocessing import apply_color_constancy
 from model.model import caformer_b36
 
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QFileDialog, QStackedLayout
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QFileDialog, QStackedLayout
 from PyQt5.QtGui import QPixmap, QImage
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 
 from introduction import IntroductionPage
 
@@ -22,46 +22,29 @@ diagnosis_mapping = {
     6: "Vascular Lesion"
 }
 
-class MainApplication(QWidget):
+class SubmissionPage(QWidget):
     def __init__(self):
         super().__init__()
+        self.currentImagePath = None
         self.initUI()
-        self.loadModel()
 
     def initUI(self):
-        self.mainLayout = QHBoxLayout()
-        self.createLeftPanel()
-        self.createRightPanel()
-        self.mainLayout.addWidget(self.leftPanel)
-        self.mainLayout.addWidget(self.rightPanel)
-        self.setLayout(self.mainLayout)
-
-    def createLeftPanel(self):
-        self.leftPanel = QWidget()
-        self.leftPanelLayout = QVBoxLayout()
-        
         self.uploadButton = QPushButton("Upload Image")
         self.uploadButton.clicked.connect(self.openFileDialog)
         
         self.imageLabel = QLabel("Image will be displayed here")
         self.imageLabel.setAlignment(Qt.AlignCenter)
         
-        self.processButton = QPushButton("Process Image")
-        self.processButton.clicked.connect(self.processImage)
+        self.submitButton = QPushButton("Submit")
+        self.submitButton.clicked.connect(self.switchToLoading)
         
-        self.leftPanelLayout.addWidget(self.processButton)
-        self.leftPanelLayout.addWidget(self.uploadButton)
-        self.leftPanelLayout.addWidget(self.imageLabel)
-        
-        self.leftPanel.setLayout(self.leftPanelLayout)
+        layout = QVBoxLayout()
 
-    def createRightPanel(self):
-        self.rightPanel = QWidget()
-        self.rightPanelLayout = QVBoxLayout()
-        self.diagnosisLabel = QLabel("Diagnosis will be displayed here")
-        self.diagnosisLabel.setAlignment(Qt.AlignCenter)
-        self.rightPanelLayout.addWidget(self.diagnosisLabel)
-        self.rightPanel.setLayout(self.rightPanelLayout)
+        layout.addWidget(self.submitButton)
+        layout.addWidget(self.uploadButton)
+        layout.addWidget(self.imageLabel)
+
+        self.setLayout(layout)
 
     def openFileDialog(self):
         options = QFileDialog.Options()
@@ -78,36 +61,35 @@ class MainApplication(QWidget):
                 self.imageLabel.setText(str(e))
                 self.currentImagePath = None
     
-    def processImage(self):
-        if self.currentImagePath:  # Make sure there is an image loaded
-            # Define the transformations to be applied to the image
-            test_transform = A.Compose([
-                A.Resize(384, 384),
-                A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-                ToTensorV2()
-            ])
-            
-            # Load and preprocess the image
-            image = cv2.imread(self.currentImagePath)
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            color_constancy_img = apply_color_constancy(image)
-            
-            # Update UI with the preprocessed image
-            self.updateImageLabel(color_constancy_img)
+    def switchToLoading(self):
+        if self.currentImagePath is not None:
+            loadingPage = Loading()
+            stackedLayout.addWidget(loadingPage)  # Add loadingPage to the layout
+            stackedLayout.setCurrentIndex(3)      # Switch to loadingPage
+            # Use a timer to delay the loading process
+            QTimer.singleShot(100, lambda: self.startLoadingProcess(loadingPage))  # 100ms delay
+        else:
+            self.imageLabel.setText("Please upload an image before submitting.")
 
-            # Apply test_transform to the image
-            transformed = test_transform(image=color_constancy_img)
-            input_tensor = transformed['image'].unsqueeze(0)  # Add batch dimension
+    def startLoadingProcess(self, loadingPage):
+        loadingPage.loadModel()
+        loadingPage.processImage(self.currentImagePath)
+    
+class Loading(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+        print("image processed")
+    
+    def initUI(self):
+        self.loadingLabel = QLabel("Loading...")
+        self.loadingLabel.setAlignment(Qt.AlignCenter)
+        
+        layout = QVBoxLayout()
+        
+        layout.addWidget(self.loadingLabel)
 
-            # Make prediction
-            output = self.model(input_tensor)
-            predicted_class = torch.argmax(output, dim=1).item()
-
-            # Map the predicted label number to its corresponding diagnosis name
-            diagnosis_name = diagnosis_mapping.get(predicted_class)
-            
-            # Update the diagnosis label in the UI
-            self.diagnosisLabel.setText(f"Diagnosis: {diagnosis_name}")
+        self.setLayout(layout)
     
     def loadModel(self):
         self.model = caformer_b36(num_classes=7)
@@ -115,25 +97,54 @@ class MainApplication(QWidget):
         self.model.load_state_dict(torch.load(weights_path, map_location='cpu'))
         self.model.eval()
 
-    def prepareModelInput(self, cvImg):
-        """Prepare image for model input."""
-        # Resize image to the expected input size of the model, 384x384
-        resized_img = cv2.resize(cvImg, (384, 384))
-        img_tensor = torch.from_numpy(resized_img).float()
-        img_tensor = img_tensor.permute(2, 0, 1)  # Convert HWC to CHW
-        img_tensor = img_tensor.unsqueeze(0)  # Add batch dimension
-        return img_tensor
+    def processImage(self, image_path):
+        # Define the transformations to be applied to the image
+        test_transform = A.Compose([
+            A.Resize(384, 384),
+            A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ToTensorV2()
+        ])
+        
+        # Load and preprocess the image
+        image = cv2.imread(image_path)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        color_constancy_img = apply_color_constancy(image)
 
-    def updateImageLabel(self, cvImg):
-        """Converts a CV image to QImage and updates the image label."""
-        height, width, channel = cvImg.shape
-        bytesPerLine = 3 * width
-        qImg = QImage(cvImg.data, width, height, bytesPerLine, QImage.Format_RGB888)
-        pixmap = QPixmap.fromImage(qImg)
+        # Apply test_transform to the image
+        transformed = test_transform(image=color_constancy_img)
+        input_tensor = transformed['image'].unsqueeze(0)  # Add batch dimension
 
-        # Resize and display the image
-        self.imageLabel.setPixmap(pixmap.scaled(self.imageLabel.width(), self.imageLabel.height(), Qt.KeepAspectRatio))
-        self.imageLabel.setAlignment(Qt.AlignCenter)
+        # Make prediction
+        output = self.model(input_tensor)
+        predicted_class = torch.argmax(output, dim=1).item()
+
+        # Map the predicted label number to its corresponding diagnosis name
+        diagnosis_name = diagnosis_mapping.get(predicted_class)
+
+        print("Predicted class:", diagnosis_name)
+        stackedLayout.setCurrentIndex(2)  # Switch to the LesionReport page
+    
+class LesionReport(QWidget):
+    def __init__(self, diagnosis):
+        super().__init__()
+        self.initUI()
+        
+    def initUI(self):
+        self.diagnosisLabel = QLabel("Diagnosis: ")
+        self.diagnosisLabel.setAlignment(Qt.AlignCenter)
+        
+        backButton = QPushButton("Back to Main")
+        backButton.clicked.connect(self.goBackToMain)
+        
+        layout = QVBoxLayout()
+        
+        layout.addWidget(self.diagnosisLabel)
+        layout.addWidget(backButton)
+
+        self.setLayout(layout)
+
+    def goBackToMain(self):
+        stackedLayout.setCurrentIndex(1)  # Switch back to the SubmissionPage
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -144,10 +155,12 @@ if __name__ == "__main__":
     stackedLayout = QStackedLayout()
     
     introPage = IntroductionPage(lambda layout: stackedLayout.setCurrentIndex(1))
-    mainPage = MainApplication()
+    submissionPage = SubmissionPage()
+    reportPage = LesionReport()
     
     stackedLayout.addWidget(introPage)
-    stackedLayout.addWidget(mainPage)
+    stackedLayout.addWidget(submissionPage)
+    stackedLayout.addWidget(reportPage)
     
     centralWidget = QWidget()
     centralWidget.setLayout(stackedLayout)
