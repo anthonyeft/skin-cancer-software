@@ -1,26 +1,36 @@
-import cv2
-import torch
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
-from preprocessing import apply_color_constancy
-from model.model import caformer_b36
-
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QFileDialog, QStackedLayout
-from PyQt5.QtGui import QPixmap, QImage
-from PyQt5.QtCore import Qt, QTimer
 
-from introduction import IntroductionPage
+from utils.processImage import processImage
 
-diagnosis_mapping = {
-    0: "Melanoma",
-    1: "Benign Melanoctyic Nevi",
-    2: "Carcinoma (Basal Cell or Squamous Cell)",
-    3: "Actinic Keratoses",
-    4: "Benign Keratosis",
-    5: "Dermafibroma",
-    6: "Vascular Lesion"
-}
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QFileDialog, QStackedLayout, QSizePolicy, QSpacerItem, QProgressBar
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal
+
+from utils.styles import STYLESHEET
+
+class IntroductionPage(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        introLabel = QLabel("Welcome to the Skin Cancer Diagnosis Demo Application.")
+
+        startButton = QPushButton("Start")
+        startButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        startButton.clicked.connect(self.switchToMain)
+
+        layout = QVBoxLayout()
+        layout.addStretch(10)
+        layout.addWidget(introLabel, alignment=Qt.AlignCenter)
+        layout.addStretch(1)
+        layout.addWidget(startButton, alignment=Qt.AlignCenter)
+        layout.addStretch(10)
+        self.setLayout(layout)
+
+    def switchToMain(self):
+        stackedLayout.setCurrentIndex(1)
+
 
 class SubmissionPage(QWidget):
     def __init__(self):
@@ -30,19 +40,24 @@ class SubmissionPage(QWidget):
 
     def initUI(self):
         self.uploadButton = QPushButton("Upload Image")
+        self.uploadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.uploadButton.clicked.connect(self.openFileDialog)
         
         self.imageLabel = QLabel("Image will be displayed here")
         self.imageLabel.setAlignment(Qt.AlignCenter)
         
         self.submitButton = QPushButton("Submit")
+        self.submitButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.submitButton.clicked.connect(self.switchToLoading)
         
-        layout = QVBoxLayout()
+        spacer = QSpacerItem(20, 200, QSizePolicy.Minimum, QSizePolicy.Fixed)
 
-        layout.addWidget(self.submitButton)
-        layout.addWidget(self.uploadButton)
+        layout = QVBoxLayout()
+        layout.addItem(spacer)
+        layout.addWidget(self.uploadButton, alignment=Qt.AlignHCenter)
         layout.addWidget(self.imageLabel)
+        layout.addWidget(self.submitButton, alignment=Qt.AlignHCenter)
+        layout.addItem(spacer)
 
         self.setLayout(layout)
 
@@ -63,104 +78,112 @@ class SubmissionPage(QWidget):
     
     def switchToLoading(self):
         if self.currentImagePath is not None:
-            loadingPage = Loading()
-            stackedLayout.addWidget(loadingPage)  # Add loadingPage to the layout
-            stackedLayout.setCurrentIndex(3)      # Switch to loadingPage
+            self.loadingPage = Loading()
+            stackedLayout.addWidget(self.loadingPage)  # Add loadingPage to the layout
+            stackedLayout.setCurrentIndex(stackedLayout.count() - 1)      # Switch to loadingPage
             # Use a timer to delay the loading process
-            QTimer.singleShot(100, lambda: self.startLoadingProcess(loadingPage))  # 100ms delay
+            QTimer.singleShot(100, lambda: self.startLoadingProcess())  # 100ms delay
         else:
             self.imageLabel.setText("Please upload an image before submitting.")
 
-    def startLoadingProcess(self, loadingPage):
-        loadingPage.loadModel()
-        loadingPage.processImage(self.currentImagePath)
-    
+    def startLoadingProcess(self):
+        diagnosis = processImage(self.currentImagePath)
+        self.loadingPage.loadingComplete.connect(lambda: self.switchToReport(diagnosis))
+
+    def switchToReport(self, diagnosis):
+        reportPage = LesionReport(diagnosis)
+        # Remove old LesionReport if it exists
+        if stackedLayout.count() > 3:
+            oldReportPage = stackedLayout.widget(3)
+            stackedLayout.removeWidget(oldReportPage)
+            oldReportPage.deleteLater()
+
+        stackedLayout.addWidget(reportPage)  # Add new reportPage to the layout
+
+        QTimer.singleShot(1000, lambda: stackedLayout.setCurrentIndex(stackedLayout.count() - 1))  # Delay the switch to show 100% progress
+
+
 class Loading(QWidget):
+    loadingComplete = pyqtSignal()
+
     def __init__(self):
         super().__init__()
         self.initUI()
-        print("image processed")
+        self.startProgressBar()
     
     def initUI(self):
         self.loadingLabel = QLabel("Loading...")
         self.loadingLabel.setAlignment(Qt.AlignCenter)
         
+        self.progressBar = QProgressBar(self)
+        self.progressBar.setAlignment(Qt.AlignCenter)
+        self.progressBar.setFixedWidth(1000)
+        self.progressBar.setRange(0, 100)
+
         layout = QVBoxLayout()
-        
+        layout.addStretch(1)
         layout.addWidget(self.loadingLabel)
-
+        layout.addStretch(1)
+        layout.addWidget(self.progressBar, alignment=Qt.AlignHCenter)
+        layout.addStretch(1)
         self.setLayout(layout)
-    
-    def loadModel(self):
-        self.model = caformer_b36(num_classes=7)
-        weights_path = 'D:/weights/caformer_b36.pth'
-        self.model.load_state_dict(torch.load(weights_path, map_location='cpu'))
-        self.model.eval()
 
-    def processImage(self, image_path):
-        # Define the transformations to be applied to the image
-        test_transform = A.Compose([
-            A.Resize(384, 384),
-            A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-            ToTensorV2()
-        ])
-        
-        # Load and preprocess the image
-        image = cv2.imread(image_path)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        color_constancy_img = apply_color_constancy(image)
+    def startProgressBar(self):
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.updateProgressBar)
+        self.timer.start(50)  # Update every 100 ms
 
-        # Apply test_transform to the image
-        transformed = test_transform(image=color_constancy_img)
-        input_tensor = transformed['image'].unsqueeze(0)  # Add batch dimension
+        self.progress = 0
 
-        # Make prediction
-        output = self.model(input_tensor)
-        predicted_class = torch.argmax(output, dim=1).item()
+    def updateProgressBar(self):
+        self.progress += 1  # Increment the progress
+        self.progressBar.setValue(self.progress)
 
-        # Map the predicted label number to its corresponding diagnosis name
-        diagnosis_name = diagnosis_mapping.get(predicted_class)
-
-        print("Predicted class:", diagnosis_name)
-        stackedLayout.setCurrentIndex(2)  # Switch to the LesionReport page
+        if self.progress >= 100:
+            self.timer.stop()  # Stop the timer when progress is complete
+            self.loadingComplete.emit()  # Emit the loadingComplete signal
     
 class LesionReport(QWidget):
     def __init__(self, diagnosis):
         super().__init__()
+        self.diagnosis = diagnosis
         self.initUI()
         
     def initUI(self):
-        self.diagnosisLabel = QLabel("Diagnosis: ")
+        self.diagnosisLabel = QLabel(f"Diagnosis: {self.diagnosis}")
         self.diagnosisLabel.setAlignment(Qt.AlignCenter)
         
-        backButton = QPushButton("Back to Main")
+        backButton = QPushButton("Back to Submission Page")
+        backButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         backButton.clicked.connect(self.goBackToMain)
         
         layout = QVBoxLayout()
-        
+        layout.addStretch(4)
         layout.addWidget(self.diagnosisLabel)
-        layout.addWidget(backButton)
+        layout.addStretch(1)
+        layout.addWidget(backButton, alignment=Qt.AlignHCenter)
+        layout.addStretch(3)
 
         self.setLayout(layout)
 
     def goBackToMain(self):
         stackedLayout.setCurrentIndex(1)  # Switch back to the SubmissionPage
 
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setStyleSheet(STYLESHEET)
     mainWindow = QMainWindow()
     mainWindow.setWindowTitle("Skin Lesion Diagnosis App")
     mainWindow.setGeometry(100, 100, 1200, 800)
     
     stackedLayout = QStackedLayout()
     
-    introPage = IntroductionPage(lambda layout: stackedLayout.setCurrentIndex(1))
+    introPage = IntroductionPage()
     submissionPage = SubmissionPage()
-    reportPage = LesionReport()
     
     stackedLayout.addWidget(introPage)
     stackedLayout.addWidget(submissionPage)
-    stackedLayout.addWidget(reportPage)
     
     centralWidget = QWidget()
     centralWidget.setLayout(stackedLayout)
