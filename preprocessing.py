@@ -1,31 +1,6 @@
 import cv2
 import numpy as np
 
-def remove_hair(image, min_pixels=30):
-    grayscale = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    kernel = cv2.getStructuringElement(1, (15, 15))
-    blackhat = cv2.morphologyEx(grayscale, cv2.MORPH_BLACKHAT, kernel)
-    _, blackhat_bin = cv2.threshold(blackhat, 10, 255, cv2.THRESH_BINARY)
-
-    # Skeletonize
-    skeleton = cv2.ximgproc.thinning(blackhat_bin)
-
-    # Connected component analysis
-    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(skeleton, 8, cv2.CV_32S)
-
-    # Create mask for regions larger than min_pixels
-    mask = np.zeros_like(skeleton)
-    for label in range(1, num_labels):  # Skip the background label
-        if stats[label, cv2.CC_STAT_AREA] >= min_pixels:
-            mask[labels == label] = 255
-
-    # Dilate mask
-    dilated_mask = cv2.dilate(mask, np.ones((6, 6), np.uint8), iterations=1)
-
-    # Inpaint
-    inpainted_image = cv2.inpaint(image, dilated_mask, 3, cv2.INPAINT_TELEA)
-
-    return inpainted_image
 
 def apply_color_constancy(img, power=6, gamma=1.8):
     img_dtype = img.dtype

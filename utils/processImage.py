@@ -45,4 +45,5 @@ def processImage(image_path):
     diagnosis_name = diagnosis_mapping.get(predicted_class)
 
     print("Predicted class:", diagnosis_name)
+
     return diagnosis_name
