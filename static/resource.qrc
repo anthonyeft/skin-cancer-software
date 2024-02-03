@@ -1,0 +1,25 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>icons/add_black.png</file>
+    <file>icons/add_blue.png</file>
+    <file>icons/add_image_black.png</file>
+    <file>icons/add_image_blue.png</file>
+    <file>icons/chart_black.png</file>
+    <file>icons/check_green.png</file>
+    <file>icons/close_white.png</file>
+    <file>icons/dashboard_blue.png</file>
+    <file>icons/dashboard_white.png</file>
+    <file>icons/gallery_black.png</file>
+    <file>icons/home_black.png</file>
+    <file>icons/home_white.png</file>
+    <file>icons/menu_black.png</file>
+    <file>icons/person_blue.png</file>
+    <file>icons/person_white.png</file>
+    <file>icons/play_black.png</file>
+    <file>icons/play_blue.png</file>
+    <file>icons/red_warning.png</file>
+    <file>icons/scan_blue.png</file>
+    <file>icons/scan_white.png</file>
+    <file>icons/yellow_warning.png</file>
+  </qresource>
+</RCC>
