@@ -1,6 +1,6 @@
 import sys
 
-from utils.processImage import processImage
+from utils.process_image import processImage
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QFileDialog, QStackedLayout, QSizePolicy, QSpacerItem, QProgressBar
 from PyQt5.QtGui import QPixmap

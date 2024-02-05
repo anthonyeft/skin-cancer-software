@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1200</width>
-    <height>700</height>
+    <height>806</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,7 +34,7 @@
      <number>0</number>
     </property>
     <item row="0" column="0">
-     <widget class="QWidget" name="icon_only_widget" native="true">
+     <widget class="QWidget" name="icon_only_sidebar_widget" native="true">
       <property name="styleSheet">
        <string notr="true">QWidget{
 	background-color: rgb(0, 123, 255);
@@ -50,6 +50,12 @@ QPushButton:checked{
 }</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
+       <property name="leftMargin">
+        <number>10</number>
+       </property>
+       <property name="rightMargin">
+        <number>10</number>
+       </property>
        <item>
         <widget class="QLabel" name="empty_spacer_label">
          <property name="font">
@@ -68,7 +74,7 @@ QPushButton:checked{
         </widget>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout">
+        <layout class="QVBoxLayout" name="icon_only_widget">
          <property name="spacing">
           <number>20</number>
          </property>
@@ -76,7 +82,7 @@ QPushButton:checked{
           <widget class="QPushButton" name="dashboard_logo_button">
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>50</width>
              <height>50</height>
             </size>
            </property>
@@ -100,7 +106,7 @@ QPushButton:checked{
           <widget class="QPushButton" name="patients_logo_button">
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>50</width>
              <height>50</height>
             </size>
            </property>
@@ -124,7 +130,7 @@ QPushButton:checked{
           <widget class="QPushButton" name="quick_scan_logo_button">
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>50</width>
              <height>50</height>
             </size>
            </property>
@@ -161,6 +167,12 @@ QPushButton:checked{
        </item>
        <item>
         <widget class="QPushButton" name="close_logo_button">
+         <property name="minimumSize">
+          <size>
+           <width>50</width>
+           <height>50</height>
+          </size>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -180,7 +192,7 @@ QPushButton:checked{
      </widget>
     </item>
     <item row="0" column="1">
-     <widget class="QWidget" name="icon_name_widget" native="true">
+     <widget class="QWidget" name="icon_name_sidebar_widget" native="true">
       <property name="styleSheet">
        <string notr="true">QWidget{
 	background-color: rgb(0, 123, 255);
@@ -221,7 +233,7 @@ QPushButton:checked{
         </widget>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <layout class="QVBoxLayout" name="icon_name_only_widget">
          <property name="spacing">
           <number>20</number>
          </property>
@@ -300,7 +312,7 @@ QPushButton:checked{
         </layout>
        </item>
        <item>
-        <spacer name="verticalSpacer_2">
+        <spacer name="sidebar_name_spacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -317,7 +329,7 @@ QPushButton:checked{
          <property name="minimumSize">
           <size>
            <width>190</width>
-           <height>36</height>
+           <height>50</height>
           </size>
          </property>
          <property name="text">
@@ -341,6 +353,19 @@ QPushButton:checked{
     <item row="0" column="2">
      <widget class="QWidget" name="widget" native="true">
       <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="1">
+        <spacer name="menu_button_spacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
        <item row="0" column="0">
         <widget class="QPushButton" name="menu_button">
          <property name="styleSheet">
@@ -358,23 +383,11 @@ QPushButton:checked{
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <spacer name="menu_button_spacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
        <item row="1" column="0" colspan="2">
-        <widget class="QStackedWidget" name="stackedWidget">
+        <widget class="QStackedWidget" name="main_stacked_widget">
          <property name="styleSheet">
-          <string notr="true">background-color: rgb(255, 255, 255);</string>
+          <string notr="true">background-color: rgb(255, 255, 255);
+</string>
          </property>
          <widget class="QWidget" name="dashboard_page">
           <widget class="QLabel" name="dashboard_label">
@@ -382,8 +395,8 @@ QPushButton:checked{
             <rect>
              <x>320</x>
              <y>220</y>
-             <width>171</width>
-             <height>23</height>
+             <width>191</width>
+             <height>61</height>
             </rect>
            </property>
            <property name="font">
@@ -400,10 +413,10 @@ QPushButton:checked{
           <widget class="QLabel" name="patient_label">
            <property name="geometry">
             <rect>
-             <x>310</x>
+             <x>370</x>
              <y>200</y>
-             <width>80</width>
-             <height>23</height>
+             <width>161</width>
+             <height>51</height>
             </rect>
            </property>
            <property name="font">
@@ -417,23 +430,196 @@ QPushButton:checked{
           </widget>
          </widget>
          <widget class="QWidget" name="quick_scan_page">
-          <widget class="QLabel" name="quick_scan_label">
+          <property name="styleSheet">
+           <string notr="true">QPushButton {
+    background-color: #007BFF;
+    border: none;
+    color: white;
+    padding: 6px 24px;
+    text-align: center;
+    font-size: 10pt;
+    border-radius: 8px;
+}
+QPushButton:hover {
+    background-color: #0069D9;
+}
+QPushButton:pressed {
+    background-color: #0056B3;
+}
+</string>
+          </property>
+          <widget class="QStackedWidget" name="quick_scan_stacked_widget">
            <property name="geometry">
             <rect>
-             <x>320</x>
-             <y>190</y>
-             <width>141</width>
-             <height>23</height>
+             <x>140</x>
+             <y>40</y>
+             <width>600</width>
+             <height>591</height>
             </rect>
            </property>
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>Quick scan</string>
-           </property>
+           <widget class="QWidget" name="submission_page">
+            <layout class="QVBoxLayout" name="verticalLayout_6">
+             <property name="spacing">
+              <number>10</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="quick_scan_label">
+               <property name="maximumSize">
+                <size>
+                 <width>1000000</width>
+                 <height>70</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>16</pointsize>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 16pt;
+color: #333333;
+font-weight:bold;</string>
+               </property>
+               <property name="text">
+                <string>Quick Scan</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="quick_scan_title_spacer">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>30</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="image_display_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>600</width>
+                 <height>450</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>600</width>
+                 <height>450</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">border: 2px dashed #7A909E;
+color: #3E5463;
+background-color: #F2F5F7;
+font-weight: bold;
+font-size: 10pt;</string>
+               </property>
+               <property name="text">
+                <string>Image will be displayed here</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="margin">
+                <number>40</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QFrame" name="frame">
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="choose_file_button">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>215</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Choose File</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="submit_button">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Submit</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
           </widget>
          </widget>
         </widget>
@@ -451,7 +637,7 @@ QPushButton:checked{
   <connection>
    <sender>menu_button</sender>
    <signal>toggled(bool)</signal>
-   <receiver>icon_only_widget</receiver>
+   <receiver>icon_only_sidebar_widget</receiver>
    <slot>setHidden(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -467,7 +653,7 @@ QPushButton:checked{
   <connection>
    <sender>menu_button</sender>
    <signal>toggled(bool)</signal>
-   <receiver>icon_name_widget</receiver>
+   <receiver>icon_name_sidebar_widget</receiver>
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
