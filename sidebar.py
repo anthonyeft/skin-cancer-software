@@ -21,6 +21,9 @@ class Sidebar(QMainWindow, Ui_MainWindow):
         self.quick_scan_button.clicked.connect(self.switch_to_quick_scan)
         self.quick_scan_logo_button.clicked.connect(self.switch_to_quick_scan)
 
+        self.choose_file_button.clicked.connect(self.openFileDialog)
+        self.submit_button.clicked.connect(self.switchToLoading)
+
     def switch_to_dashboard(self):
         self.main_stacked_widget.setCurrentIndex(0)
     
@@ -60,16 +63,17 @@ class Sidebar(QMainWindow, Ui_MainWindow):
         self.loadingPage.loadingComplete.connect(lambda: self.switchToReport(diagnosis))
 
     def switchToReport(self, diagnosis):
-        reportPage = LesionReport(diagnosis)
+        self.reportPage = LesionReport(diagnosis)
         # Remove old LesionReport if it exists
         if self.quick_scan_stacked_widget.count() > 3:
             oldReportPage = self.quick_scan_stacked_widget.widget(3)
             self.quick_scan_stacked_widget.removeWidget(oldReportPage)
             oldReportPage.deleteLater()
 
-        self.quick_scan_stacked_widget.addWidget(reportPage)  # Add new reportPage to the layout
+        self.quick_scan_stacked_widget.addWidget(self.reportPage)  # Add new reportPage to the layout
 
         QTimer.singleShot(1000, lambda: self.quick_scan_stacked_widget.setCurrentIndex(self.quick_scan_stacked_widget.count() - 1))  # Delay the switch to show 100% progress
+        self.reportPage.backToSubmission.connect(lambda: self.quick_scan_stacked_widget.setCurrentIndex(0))
 
 
 class Loading(QWidget):
@@ -113,6 +117,8 @@ class Loading(QWidget):
             self.loadingComplete.emit()  # Emit the loadingComplete signal
     
 class LesionReport(QWidget):
+    backToSubmission = pyqtSignal()
+
     def __init__(self, diagnosis):
         super().__init__()
         self.diagnosis = diagnosis
@@ -136,4 +142,4 @@ class LesionReport(QWidget):
         self.setLayout(layout)
 
     def goBackToMain(self):
-        self.quick_scan_stacked_widget.setCurrentIndex(1)  # Switch back to the SubmissionPage
+        self.backToSubmission.emit()

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
-    <height>806</height>
+    <width>1920</width>
+    <height>1080</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -80,10 +80,16 @@ QPushButton:checked{
          </property>
          <item>
           <widget class="QPushButton" name="dashboard_logo_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>100</width>
+             <height>100</height>
             </size>
            </property>
            <property name="text">
@@ -93,6 +99,12 @@ QPushButton:checked{
             <iconset resource="../static/resource.qrc">
              <normaloff>:/icons/icons/dashboard_white.png</normaloff>
              <normalon>:/icons/icons/dashboard_blue.png</normalon>:/icons/icons/dashboard_white.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>60</width>
+             <height>60</height>
+            </size>
            </property>
            <property name="checkable">
             <bool>true</bool>
@@ -104,10 +116,16 @@ QPushButton:checked{
          </item>
          <item>
           <widget class="QPushButton" name="patients_logo_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>100</width>
+             <height>100</height>
             </size>
            </property>
            <property name="text">
@@ -117,6 +135,12 @@ QPushButton:checked{
             <iconset resource="../static/resource.qrc">
              <normaloff>:/icons/icons/person_white.png</normaloff>
              <normalon>:/icons/icons/person_blue.png</normalon>:/icons/icons/person_white.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>60</width>
+             <height>60</height>
+            </size>
            </property>
            <property name="checkable">
             <bool>true</bool>
@@ -128,10 +152,16 @@ QPushButton:checked{
          </item>
          <item>
           <widget class="QPushButton" name="quick_scan_logo_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>100</width>
+             <height>100</height>
             </size>
            </property>
            <property name="text">
@@ -141,6 +171,12 @@ QPushButton:checked{
             <iconset resource="../static/resource.qrc">
              <normaloff>:/icons/icons/scan_white.png</normaloff>
              <normalon>:/icons/icons/scan_blue.png</normalon>:/icons/icons/scan_white.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>60</width>
+             <height>60</height>
+            </size>
            </property>
            <property name="checkable">
             <bool>true</bool>
@@ -169,8 +205,8 @@ QPushButton:checked{
         <widget class="QPushButton" name="close_logo_button">
          <property name="minimumSize">
           <size>
-           <width>50</width>
-           <height>50</height>
+           <width>100</width>
+           <height>100</height>
           </size>
          </property>
          <property name="text">
@@ -179,6 +215,12 @@ QPushButton:checked{
          <property name="icon">
           <iconset resource="../static/resource.qrc">
            <normaloff>:/icons/icons/close_white.png</normaloff>:/icons/icons/close_white.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>60</width>
+           <height>60</height>
+          </size>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -212,6 +254,9 @@ QPushButton:checked{
 }</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="leftMargin">
+        <number>30</number>
+       </property>
        <property name="rightMargin">
         <number>0</number>
        </property>
@@ -239,19 +284,36 @@ QPushButton:checked{
          </property>
          <item>
           <widget class="QPushButton" name="dashboard_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize">
             <size>
-             <width>190</width>
-             <height>50</height>
+             <width>280</width>
+             <height>100</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
            <property name="text">
-            <string>Dashboard</string>
+            <string> Dashboard</string>
            </property>
            <property name="icon">
             <iconset resource="../static/resource.qrc">
              <normaloff>:/icons/icons/dashboard_white.png</normaloff>
              <normalon>:/icons/icons/dashboard_blue.png</normalon>:/icons/icons/dashboard_white.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>60</width>
+             <height>60</height>
+            </size>
            </property>
            <property name="checkable">
             <bool>true</bool>
@@ -263,19 +325,36 @@ QPushButton:checked{
          </item>
          <item>
           <widget class="QPushButton" name="patients_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize">
             <size>
-             <width>190</width>
-             <height>50</height>
+             <width>280</width>
+             <height>100</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
            <property name="text">
-            <string>Patients</string>
+            <string> Patients</string>
            </property>
            <property name="icon">
             <iconset resource="../static/resource.qrc">
              <normaloff>:/icons/icons/person_white.png</normaloff>
              <normalon>:/icons/icons/person_blue.png</normalon>:/icons/icons/person_white.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>60</width>
+             <height>60</height>
+            </size>
            </property>
            <property name="checkable">
             <bool>true</bool>
@@ -287,19 +366,36 @@ QPushButton:checked{
          </item>
          <item>
           <widget class="QPushButton" name="quick_scan_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize">
             <size>
-             <width>190</width>
-             <height>50</height>
+             <width>280</width>
+             <height>100</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
            <property name="text">
-            <string>Quick Scan</string>
+            <string> Quick Scan</string>
            </property>
            <property name="icon">
             <iconset resource="../static/resource.qrc">
              <normaloff>:/icons/icons/scan_white.png</normaloff>
              <normalon>:/icons/icons/scan_blue.png</normalon>:/icons/icons/scan_white.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>60</width>
+             <height>60</height>
+            </size>
            </property>
            <property name="checkable">
             <bool>true</bool>
@@ -326,11 +422,22 @@ QPushButton:checked{
        </item>
        <item>
         <widget class="QPushButton" name="close_button">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="minimumSize">
           <size>
-           <width>190</width>
-           <height>50</height>
+           <width>200</width>
+           <height>100</height>
           </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
          </property>
          <property name="text">
           <string>Close</string>
@@ -338,6 +445,12 @@ QPushButton:checked{
          <property name="icon">
           <iconset resource="../static/resource.qrc">
            <normaloff>:/icons/icons/close_white.png</normaloff>:/icons/icons/close_white.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>60</width>
+           <height>60</height>
+          </size>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -368,6 +481,12 @@ QPushButton:checked{
        </item>
        <item row="0" column="0">
         <widget class="QPushButton" name="menu_button">
+         <property name="minimumSize">
+          <size>
+           <width>60</width>
+           <height>60</height>
+          </size>
+         </property>
          <property name="styleSheet">
           <string notr="true">border:none;</string>
          </property>
@@ -377,6 +496,12 @@ QPushButton:checked{
          <property name="icon">
           <iconset resource="../static/resource.qrc">
            <normaloff>:/icons/icons/menu_black.png</normaloff>:/icons/icons/menu_black.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>60</width>
+           <height>60</height>
+          </size>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -448,179 +573,301 @@ QPushButton:pressed {
 }
 </string>
           </property>
-          <widget class="QStackedWidget" name="quick_scan_stacked_widget">
-           <property name="geometry">
-            <rect>
-             <x>140</x>
-             <y>40</y>
-             <width>600</width>
-             <height>591</height>
-            </rect>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <property name="spacing">
+            <number>0</number>
            </property>
-           <widget class="QWidget" name="submission_page">
-            <layout class="QVBoxLayout" name="verticalLayout_6">
-             <property name="spacing">
-              <number>10</number>
-             </property>
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QLabel" name="quick_scan_label">
-               <property name="maximumSize">
-                <size>
-                 <width>1000000</width>
-                 <height>70</height>
-                </size>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QStackedWidget" name="quick_scan_stacked_widget">
+             <widget class="QWidget" name="submission_page">
+              <layout class="QVBoxLayout" name="verticalLayout_6">
+               <property name="spacing">
+                <number>10</number>
                </property>
-               <property name="font">
-                <font>
-                 <pointsize>16</pointsize>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
+               <property name="leftMargin">
+                <number>0</number>
                </property>
-               <property name="styleSheet">
-                <string notr="true">font-size: 16pt;
+               <property name="topMargin">
+                <number>10</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="quick_scan_label">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>100</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>1000000</width>
+                   <height>70</height>
+                  </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>20</pointsize>
+                   <weight>75</weight>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">font-size: 20pt;
 color: #333333;
 font-weight:bold;</string>
-               </property>
-               <property name="text">
-                <string>Quick Scan</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="quick_scan_title_spacer">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>30</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QLabel" name="image_display_label">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>600</width>
-                 <height>450</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>600</width>
-                 <height>450</height>
-                </size>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">border: 2px dashed #7A909E;
+                 </property>
+                 <property name="text">
+                  <string>Quick Scan</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="bottom_spacer">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeType">
+                  <enum>QSizePolicy::Expanding</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>80</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QFrame" name="image_h_frame">
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_2">
+                  <item>
+                   <spacer name="horizontal_image_display_label_spacer_1">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Preferred</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="image_display_label">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>600</width>
+                      <height>450</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>1200</width>
+                      <height>900</height>
+                     </size>
+                    </property>
+                    <property name="font">
+                     <font>
+                      <pointsize>12</pointsize>
+                      <weight>75</weight>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">border: 2px dashed #7A909E;
 color: #3E5463;
 background-color: #F2F5F7;
 font-weight: bold;
-font-size: 10pt;</string>
-               </property>
-               <property name="text">
-                <string>Image will be displayed here</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-               <property name="margin">
-                <number>40</number>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QFrame" name="frame">
-               <property name="frameShape">
-                <enum>QFrame::StyledPanel</enum>
-               </property>
-               <property name="frameShadow">
-                <enum>QFrame::Raised</enum>
-               </property>
-               <layout class="QHBoxLayout" name="horizontalLayout">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QPushButton" name="choose_file_button">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
+font-size: 12pt;</string>
+                    </property>
+                    <property name="text">
+                     <string>Image will be displayed here</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                    <property name="margin">
+                     <number>40</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontal_image_display_label_spacer_2">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Preferred</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="button_h_frame">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>80</height>
+                  </size>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout">
+                  <property name="spacing">
+                   <number>50</number>
                   </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>215</width>
-                    <height>0</height>
-                   </size>
+                  <property name="leftMargin">
+                   <number>0</number>
                   </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>200</width>
-                    <height>40</height>
-                   </size>
+                  <property name="topMargin">
+                   <number>0</number>
                   </property>
-                  <property name="text">
-                   <string>Choose File</string>
+                  <property name="rightMargin">
+                   <number>0</number>
                   </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="submit_button">
-                  <property name="maximumSize">
-                   <size>
-                    <width>200</width>
-                    <height>40</height>
-                   </size>
+                  <property name="bottomMargin">
+                   <number>0</number>
                   </property>
-                  <property name="text">
-                   <string>Submit</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </widget>
+                  <item>
+                   <spacer name="horizontalSpacer">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="choose_file_button">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>250</width>
+                      <height>50</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>200</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Choose File</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="submit_button">
+                    <property name="minimumSize">
+                     <size>
+                      <width>200</width>
+                      <height>50</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>200</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Submit</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_2">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <spacer name="quick_scan_title_spacer">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </widget>
        </item>
