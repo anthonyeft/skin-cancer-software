@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QApplication
 import sys
-from sidebar import Sidebar
+from ui_handler import Sidebar
+
+### Main Function ###
 
 app = QApplication(sys.argv)
 window = Sidebar()

@@ -1,4 +1,4 @@
-from ui_sidebar import Ui_MainWindow
+from ui import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QWidget, QVBoxLayout, QLabel, QFileDialog, QSizePolicy, QProgressBar
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal

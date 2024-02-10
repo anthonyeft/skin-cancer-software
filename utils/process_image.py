@@ -2,7 +2,7 @@ import cv2
 import torch
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
-from models.model import caformer_b36
+from models.classification.model import caformer_b36
 import numpy as np
 
 def apply_color_constancy(img, power=6, gamma=1.8):
