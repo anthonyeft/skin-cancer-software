@@ -594,7 +594,7 @@ QPushButton:pressed {
              <widget class="QWidget" name="submission_page">
               <layout class="QVBoxLayout" name="verticalLayout_6">
                <property name="spacing">
-                <number>10</number>
+                <number>0</number>
                </property>
                <property name="leftMargin">
                 <number>0</number>
@@ -648,18 +648,24 @@ font-weight:bold;</string>
                   <enum>Qt::Vertical</enum>
                  </property>
                  <property name="sizeType">
-                  <enum>QSizePolicy::Expanding</enum>
+                  <enum>QSizePolicy::Fixed</enum>
                  </property>
                  <property name="sizeHint" stdset="0">
                   <size>
                    <width>20</width>
-                   <height>80</height>
+                   <height>60</height>
                   </size>
                  </property>
                 </spacer>
                </item>
                <item>
                 <widget class="QFrame" name="image_h_frame">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
                  <property name="frameShape">
                   <enum>QFrame::StyledPanel</enum>
                  </property>
@@ -673,7 +679,7 @@ font-weight:bold;</string>
                      <enum>Qt::Horizontal</enum>
                     </property>
                     <property name="sizeType">
-                     <enum>QSizePolicy::Preferred</enum>
+                     <enum>QSizePolicy::Expanding</enum>
                     </property>
                     <property name="sizeHint" stdset="0">
                      <size>
@@ -685,6 +691,9 @@ font-weight:bold;</string>
                   </item>
                   <item>
                    <widget class="QLabel" name="image_display_label">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -693,29 +702,29 @@ font-weight:bold;</string>
                     </property>
                     <property name="minimumSize">
                      <size>
-                      <width>600</width>
-                      <height>450</height>
+                      <width>720</width>
+                      <height>540</height>
                      </size>
                     </property>
                     <property name="maximumSize">
                      <size>
-                      <width>1200</width>
-                      <height>900</height>
+                      <width>900</width>
+                      <height>675</height>
                      </size>
                     </property>
                     <property name="font">
                      <font>
-                      <pointsize>12</pointsize>
+                      <pointsize>8</pointsize>
                       <weight>75</weight>
                       <bold>true</bold>
                      </font>
                     </property>
                     <property name="styleSheet">
-                     <string notr="true">border: 2px dashed #7A909E;
+                     <string notr="true">border: 3px dashed #7A909E;
 color: #3E5463;
 background-color: #F2F5F7;
 font-weight: bold;
-font-size: 12pt;</string>
+font-size: 8pt;</string>
                     </property>
                     <property name="text">
                      <string>Image will be displayed here</string>
@@ -734,7 +743,7 @@ font-size: 12pt;</string>
                      <enum>Qt::Horizontal</enum>
                     </property>
                     <property name="sizeType">
-                     <enum>QSizePolicy::Preferred</enum>
+                     <enum>QSizePolicy::Expanding</enum>
                     </property>
                     <property name="sizeHint" stdset="0">
                      <size>
@@ -749,10 +758,22 @@ font-size: 12pt;</string>
                </item>
                <item>
                 <widget class="QFrame" name="button_h_frame">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>80</height>
+                   <height>60</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>120</height>
                   </size>
                  </property>
                  <property name="frameShape">
@@ -793,7 +814,7 @@ font-size: 12pt;</string>
                   <item>
                    <widget class="QPushButton" name="choose_file_button">
                     <property name="sizePolicy">
-                     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                       <horstretch>0</horstretch>
                       <verstretch>0</verstretch>
                      </sizepolicy>
@@ -806,8 +827,8 @@ font-size: 12pt;</string>
                     </property>
                     <property name="maximumSize">
                      <size>
-                      <width>200</width>
-                      <height>40</height>
+                      <width>400</width>
+                      <height>80</height>
                      </size>
                     </property>
                     <property name="text">
@@ -825,8 +846,8 @@ font-size: 12pt;</string>
                     </property>
                     <property name="maximumSize">
                      <size>
-                      <width>200</width>
-                      <height>40</height>
+                      <width>400</width>
+                      <height>80</height>
                      </size>
                     </property>
                     <property name="text">
@@ -855,10 +876,13 @@ font-size: 12pt;</string>
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>
                  </property>
+                 <property name="sizeType">
+                  <enum>QSizePolicy::Maximum</enum>
+                 </property>
                  <property name="sizeHint" stdset="0">
                   <size>
                    <width>20</width>
-                   <height>40</height>
+                   <height>200</height>
                   </size>
                  </property>
                 </spacer>
