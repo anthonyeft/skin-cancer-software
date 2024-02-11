@@ -350,7 +350,7 @@ class MixVisionTransformer(nn.Module):
 class MixVisionTransformerEncoder(MixVisionTransformer):
     def __init__(self, out_channels, depth=5, **kwargs):
         super().__init__(**kwargs)
-        self._out_channels = out_channels
+        self.out_channels = out_channels
         self._depth = depth
         self._in_channels = 3
 

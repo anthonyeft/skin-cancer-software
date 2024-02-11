@@ -43,7 +43,6 @@ class Unet(SegmentationModel):
         self.decoder = UnetDecoder(
             encoder_channels=self.encoder.out_channels,
             decoder_channels=decoder_channels,
-            n_blocks=encoder_depth,
             use_batchnorm=decoder_use_batchnorm,
         )
 
@@ -55,7 +54,6 @@ class Unet(SegmentationModel):
         )
 
         self.name = "u-{}".format(encoder_name)
-        self.initialize()
 
 def mit_unet():
     model = Unet(encoder_name="mit_b4", activation="sigmoid")
