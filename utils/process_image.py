@@ -77,11 +77,6 @@ def segment_image(image_path):
     contour_image = image.copy()
     cv2.drawContours(contour_image, contours, -1, (0, 255, 0), 3)
 
-    # Display the image with contours
-    plt.imshow(contour_image)
-    plt.axis('off')
-    plt.show()
-
     return binary_mask, contours, contour_image
 
 def calculate_asymmetry(mask):
