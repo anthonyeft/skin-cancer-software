@@ -3,7 +3,30 @@ import torch
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from models.classification.model import caformer_b36
+from models.segmentation.segmentation_model import mit_unet
 import numpy as np
+
+
+segmentation_model = mit_unet()
+segmentation_weights_path = 'D:/weights/mit_unet.pth'
+segmentation_model.load_state_dict(torch.load(segmentation_weights_path, map_location='cpu'))
+segmentation_model.eval()
+
+classification_model = caformer_b36(num_classes=7)
+caformer_weights_path = 'D:/weights/caformer_b36.pth'
+classification_model.load_state_dict(torch.load(caformer_weights_path, map_location='cpu'))
+classification_model.eval()
+
+diagnosis_mapping = {
+    0: "Melanoma Cancer",
+    1: "Benign Melanoctyic Nevi",
+    2: "Carcinoma Cancer (Basal Cell or Squamous Cell)",
+    3: "Actinic Keratosis Pre-Cancer",
+    4: "Benign Keratosis",
+    5: "Benign Dermatofibroma",
+    6: "Benign Vascular Lesion"
+}
+
 
 def apply_color_constancy(img, power=6, gamma=1.8):
     img_dtype = img.dtype
@@ -24,25 +47,15 @@ def apply_color_constancy(img, power=6, gamma=1.8):
 
     return img.astype(img_dtype)
 
-diagnosis_mapping = {
-    0: "Melanoma Cancer",
-    1: "Benign Melanoctyic Nevi",
-    2: "Carcinoma Cancer (Basal Cell or Squamous Cell)",
-    3: "Actinic Keratosis Pre-Cancer",
-    4: "Benign Keratosis",
-    5: "Benign Dermatofibroma",
-    6: "Benign Vascular Lesion"
-}
-
-model = caformer_b36(num_classes=7)
-weights_path = 'D:/weights/caformer_b36.pth'
-model.load_state_dict(torch.load(weights_path, map_location='cpu'))
-model.eval()
-
 def processImage(image_path):
     # Define the transformations to be applied to the image
     test_transform = A.Compose([
         A.Resize(384, 384),
+        A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ToTensorV2()
+    ])
+    test_transform_segmentation = A.Compose([
+        A.Resize(224, 224),
         A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ToTensorV2()
     ])
@@ -57,7 +70,7 @@ def processImage(image_path):
     input_tensor = transformed['image'].unsqueeze(0)  # Add batch dimension
 
     # Make prediction
-    output = model(input_tensor)
+    output = classification_model(input_tensor)
     predicted_class = torch.argmax(output, dim=1).item()
 
     # Map the predicted label number to its corresponding diagnosis name
