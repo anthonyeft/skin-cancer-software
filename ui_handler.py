@@ -1,10 +1,10 @@
 from ui import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QFileDialog
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt, QTimer, pyqtSignal
+from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal
 from utils.process_image import processImage
 
-class Sidebar(QMainWindow, Ui_MainWindow):
+class mainApplication(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -57,17 +57,19 @@ class Sidebar(QMainWindow, Ui_MainWindow):
             self.timer.start(50)
 
             self.progress = 0
+
+            # Use a timer to delay the loading process
+            QTimer.singleShot(100, lambda: self.startLoadingProcess())
+
             if self.progress >= 100:
                 self.timer.stop()
-            # Use a timer to delay the loading process
-            QTimer.singleShot(100, lambda: self.startLoadingProcess())  # 100ms delay
+                self.switchToReport(self.diagnosis)
     
         else:
             self.image_display_label.setText("Please upload an image before submitting.")
 
     def startLoadingProcess(self):
-        diagnosis = processImage(self.currentImagePath)
-        self.switchToReport(diagnosis)
+        self.diagnosis = processImage(self.currentImagePath)
 
     def updateProgressBar(self):
         self.progress += 1  # Increment the progress
@@ -79,5 +81,8 @@ class Sidebar(QMainWindow, Ui_MainWindow):
     def switchToReport(self, diagnosis):
         self.diagnosis_label.setText(f"Diagnosis: {diagnosis}")
         pixmap = QPixmap(self.currentImagePath)
-        self.processed_image_label.setPixmap(pixmap.scaled(self.processed_image_label.width(), self.processed_image_label.height(), Qt.KeepAspectRatio))
+        scaled_pixmap = pixmap.scaled(self.processed_image_label.width(), self.processed_image_label.height(), Qt.KeepAspectRatio)
+        self.processed_image_label.setPixmap(scaled_pixmap)
+        self.processed_image_label.setFixedWidth(scaled_pixmap.width())
+        self.processed_image_label.setAlignment(Qt.AlignCenter)
         QTimer.singleShot(1000, lambda: self.quick_scan_stacked_widget.setCurrentIndex(2))
