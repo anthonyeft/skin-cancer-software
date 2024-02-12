@@ -67,6 +67,7 @@ def segment_image(image_path):
     image = cv2.imread(image_path)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     color_constancy_img = apply_color_constancy(image)
+    visual_constancy_image = apply_color_constancy_no_gamma(image)
 
     # Apply test_transform_segmentation to the image for segmentation
     test_transform_segmentation = A.Compose([
@@ -87,7 +88,7 @@ def segment_image(image_path):
     contours, _ = cv2.findContours(binary_mask.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     # Draw contours over the original image
-    contour_image = image.copy()
+    contour_image = visual_constancy_image.copy()
     cv2.drawContours(contour_image, contours, -1, (0, 255, 0), 3)
 
     return binary_mask, contours, contour_image
