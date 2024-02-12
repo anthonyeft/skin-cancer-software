@@ -49,6 +49,19 @@ def apply_color_constancy(img, power=6, gamma=1.8):
 
     return img.astype(img_dtype)
 
+def apply_color_constancy_no_gamma(img, power=6):
+    img_dtype = img.dtype
+    img = img.astype('float32')
+    img_power = np.power(img, power)
+    rgb_vec = np.power(np.mean(img_power, (0, 1)), 1 / power)
+    rgb_norm = np.sqrt(np.sum(np.power(rgb_vec, 2.0)))
+    rgb_vec = rgb_vec / rgb_norm
+    rgb_vec = 1 / (rgb_vec * np.sqrt(3))
+    img = np.multiply(img, rgb_vec)
+    img = np.clip(img, 0, 255).astype('uint8')
+
+    return img.astype(img_dtype)
+
 def segment_image(image_path):
     # Load and preprocess the image
     image = cv2.imread(image_path)
@@ -114,7 +127,6 @@ def calculate_abc_score(mask, contour):
 
     border_irregularity_score = calculate_border_irregularity(contour)
 
-    # Color
     # Calculate the color score
 
     return asymmetry_score, border_irregularity_score
@@ -149,7 +161,7 @@ def processImage(image_path):
     # Apply color constancy
     image = cv2.imread(image_path)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    color_constancy_img = apply_color_constancy(image)
+    color_constancy_img = apply_color_constancy_no_gamma(image)
 
     # Segment the image
     binary_mask, contours, contour_image = segment_image(image_path)
