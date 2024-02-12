@@ -1,8 +1,20 @@
 from ui import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QFileDialog
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal, QObject
 from utils.process_image import processImage
+
+class DiagnosisWorker(QObject):
+    finished = pyqtSignal(str)
+
+    def __init__(self, imagePath):
+        super().__init__()
+        self.imagePath = imagePath
+
+    def run(self):
+        # Perform the image diagnosis
+        diagnosis = processImage(self.imagePath)
+        self.finished.emit(diagnosis)  # Emit the diagnosis
 
 class mainApplication(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -52,24 +64,31 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         if self.currentImagePath is not None:
             self.quick_scan_stacked_widget.setCurrentIndex(1)
 
+            # Setup the progress bar
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.updateProgressBar)
-            self.timer.start(50)
-
+            self.timer.start(25)
             self.progress = 0
 
-            # Use a timer to delay the loading process
-            QTimer.singleShot(100, lambda: self.startLoadingProcess())
+            # Setup and start the diagnosis thread
+            self.thread = QThread()
+            self.diagnosis_worker = DiagnosisWorker(self.currentImagePath)
+            self.diagnosis_worker.moveToThread(self.thread)
+            self.diagnosis_worker.finished.connect(self.diagnosisComplete)
+            self.thread.started.connect(self.diagnosis_worker.run)
+            self.thread.start()
 
-            if self.progress >= 100:
-                self.timer.stop()
-                self.switchToReport(self.diagnosis)
-    
         else:
             self.image_display_label.setText("Please upload an image before submitting.")
-
-    def startLoadingProcess(self):
-        self.diagnosis = processImage(self.currentImagePath)
+        
+    def diagnosisComplete(self, diagnosis):
+        #self.diagnosis = diagnosis
+        self.switchToReport(diagnosis)
+        if self.progress < 100:
+            self.progress = 100
+            self.progress_bar.setValue(self.progress)
+        self.thread.quit()
+        self.thread.wait()
 
     def updateProgressBar(self):
         self.progress += 1  # Increment the progress
