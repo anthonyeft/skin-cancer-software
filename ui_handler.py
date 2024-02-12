@@ -2,10 +2,12 @@ from ui import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QFileDialog
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal, QObject
+
 from process_image import processImage
+from utils import convertArrayToPixmap
 
 class DiagnosisWorker(QObject):
-    finished = pyqtSignal(str)
+    finished = pyqtSignal(str, object, object)
 
     def __init__(self, imagePath):
         super().__init__()
@@ -112,19 +114,19 @@ class mainApplication(QMainWindow, Ui_MainWindow):
 
         # Display the original image
         original_image_pixmap = QPixmap(self.currentImagePath)
-        original_image_pixmap_scaled = original_image_pixmap.scaled(self.processed_image_label.width(), self.processed_image_label.height(), Qt.KeepAspectRatio)
-        self.processed_image_label.setPixmap(original_image_pixmap_scaled)
-        self.processed_image_label.setFixedWidth(original_image_pixmap_scaled.width())
+        original_image_pixmap_scaled = original_image_pixmap.scaled(self.original_image_label.width(), self.original_image_label.height(), Qt.KeepAspectRatio)
+        self.original_image_label.setPixmap(original_image_pixmap_scaled)
+        self.original_image_label.setFixedWidth(original_image_pixmap_scaled.width())
 
         # Display the color constancy image
-        color_constancy_pixmap = QPixmap(color_constancy_image)
-        color_constancy_pixmap_scaled = color_constancy_pixmap.scaled(self.colour_constancy_image_label.width(), self.color_constancy_image_label.height(), Qt.KeepAspectRatio)
+        color_constancy_pixmap = convertArrayToPixmap(color_constancy_image)
+        color_constancy_pixmap_scaled = color_constancy_pixmap.scaled(self.colour_constancy_image_label.width(), self.colour_constancy_image_label.height(), Qt.KeepAspectRatio)
         self.colour_constancy_image_label.setPixmap(color_constancy_pixmap_scaled)
         self.colour_constancy_image_label.setFixedWidth(color_constancy_pixmap_scaled.width())
 
         # Display the contour image
-        contour_pixmap = QPixmap(contour_image)
-        contour_pixmap_scaled = contour_pixmap.scaled(self.contour_image_label.width(), self.contour_image_label.height(), Qt.KeepAspectRatio)
+        contour_pixmap = convertArrayToPixmap(contour_image)
+        contour_pixmap_scaled = contour_pixmap.scaled(self.segmented_image_label.width(), self.segmented_image_label.height(), Qt.KeepAspectRatio)
         self.segmented_image_label.setPixmap(contour_pixmap_scaled)
         self.segmented_image_label.setFixedWidth(contour_pixmap_scaled.width())
 
