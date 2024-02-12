@@ -2,7 +2,7 @@ from ui import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QFileDialog
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal, QObject
-from utils.process_image import processImage
+from process_image import processImage
 
 class DiagnosisWorker(QObject):
     finished = pyqtSignal(str)
@@ -12,9 +12,9 @@ class DiagnosisWorker(QObject):
         self.imagePath = imagePath
 
     def run(self):
-        # Perform the image diagnosis
-        diagnosis = processImage(self.imagePath)
-        self.finished.emit(diagnosis)  # Emit the diagnosis
+        # Perform the image processing algorithms
+        diagnosis, color_constancy_image, contour_image = processImage(self.imagePath)
+        self.finished.emit(diagnosis, color_constancy_image, contour_image)
 
 class mainApplication(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -24,6 +24,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
 
         self.icon_name_sidebar_widget.setHidden(True)
 
+        # Sidebar buttons
         self.dashboard_button.clicked.connect(self.switch_to_dashboard)
         self.dashboard_logo_button.clicked.connect(self.switch_to_dashboard)
 
@@ -33,8 +34,17 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         self.quick_scan_button.clicked.connect(self.switch_to_quick_scan)
         self.quick_scan_logo_button.clicked.connect(self.switch_to_quick_scan)
 
+        # Quick scan submission page buttons
         self.choose_file_button.clicked.connect(self.openFileDialog)
         self.submit_button.clicked.connect(self.switchToLoading)
+
+        # Report page buttons
+        self.original_image_next_button.clicked.connect(self.switchToColorConstancyImage)
+
+        self.colour_constancy_image_next_button.clicked.connect(self.switchToSegmentedImage)
+        self.colour_constancy_image_previous_button.clicked.connect(self.switchToOriginalImage)
+
+        self.segmented_image_previous_button.clicked.connect(self.switchToColorConstancyImage)
 
     def switch_to_dashboard(self):
         self.main_stacked_widget.setCurrentIndex(0)
@@ -81,9 +91,9 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         else:
             self.image_display_label.setText("Please upload an image before submitting.")
         
-    def diagnosisComplete(self, diagnosis):
+    def diagnosisComplete(self, diagnosis, color_constancy_image, contour_image):
         #self.diagnosis = diagnosis
-        self.switchToReport(diagnosis)
+        self.switchToReport(diagnosis, color_constancy_image, contour_image)
         if self.progress < 100:
             self.progress = 100
             self.progress_bar.setValue(self.progress)
@@ -97,11 +107,34 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         if self.progress >= 100:
             self.timer.stop()
 
-    def switchToReport(self, diagnosis):
+    def switchToReport(self, diagnosis, color_constancy_image, contour_image):
         self.diagnosis_label.setText(f"Diagnosis: {diagnosis}")
-        pixmap = QPixmap(self.currentImagePath)
-        scaled_pixmap = pixmap.scaled(self.processed_image_label.width(), self.processed_image_label.height(), Qt.KeepAspectRatio)
-        self.processed_image_label.setPixmap(scaled_pixmap)
-        self.processed_image_label.setFixedWidth(scaled_pixmap.width())
-        self.processed_image_label.setAlignment(Qt.AlignCenter)
+
+        # Display the original image
+        original_image_pixmap = QPixmap(self.currentImagePath)
+        original_image_pixmap_scaled = original_image_pixmap.scaled(self.processed_image_label.width(), self.processed_image_label.height(), Qt.KeepAspectRatio)
+        self.processed_image_label.setPixmap(original_image_pixmap_scaled)
+        self.processed_image_label.setFixedWidth(original_image_pixmap_scaled.width())
+
+        # Display the color constancy image
+        color_constancy_pixmap = QPixmap(color_constancy_image)
+        color_constancy_pixmap_scaled = color_constancy_pixmap.scaled(self.colour_constancy_image_label.width(), self.color_constancy_image_label.height(), Qt.KeepAspectRatio)
+        self.colour_constancy_image_label.setPixmap(color_constancy_pixmap_scaled)
+        self.colour_constancy_image_label.setFixedWidth(color_constancy_pixmap_scaled.width())
+
+        # Display the contour image
+        contour_pixmap = QPixmap(contour_image)
+        contour_pixmap_scaled = contour_pixmap.scaled(self.contour_image_label.width(), self.contour_image_label.height(), Qt.KeepAspectRatio)
+        self.segmented_image_label.setPixmap(contour_pixmap_scaled)
+        self.segmented_image_label.setFixedWidth(contour_pixmap_scaled.width())
+
         QTimer.singleShot(1000, lambda: self.quick_scan_stacked_widget.setCurrentIndex(2))
+    
+    def switchToOriginalImage(self):
+        self.report_left_panel_stacked_widget.setCurrentIndex(0)
+    
+    def switchToColorConstancyImage(self):
+        self.report_left_panel_stacked_widget.setCurrentIndex(1)
+    
+    def switchToSegmentedImage(self):
+        self.report_left_panel_stacked_widget.setCurrentIndex(2)

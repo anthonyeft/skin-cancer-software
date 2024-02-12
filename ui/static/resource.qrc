@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/previous_white.png</file>
+    <file>icons/next_white.png</file>
     <file>icons/add_black.png</file>
     <file>icons/add_blue.png</file>
     <file>icons/add_image_black.png</file>

@@ -143,11 +143,14 @@ def classify_image(image_path):
     # Map the predicted label number to its corresponding diagnosis name
     diagnosis_name = diagnosis_mapping.get(predicted_class)
 
-    print("Predicted class:", diagnosis_name)
-
     return diagnosis_name
 
 def processImage(image_path):
+    # Apply color constancy
+    image = cv2.imread(image_path)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    color_constancy_img = apply_color_constancy(image)
+
     # Segment the image
     binary_mask, contours, contour_image = segment_image(image_path)
 
@@ -159,5 +162,6 @@ def processImage(image_path):
 
     print("Asymmetry score:", asymmetry_score)
     print("Border irregularity score:", border_irregularity_score)
+    print("Predicted class:", diagnosis)
 
-    return diagnosis
+    return diagnosis, color_constancy_img, contour_image
