@@ -177,4 +177,4 @@ def processImage(image_path):
     print("Border irregularity score:", border_irregularity_score)
     print("Predicted class:", diagnosis)
 
-    return diagnosis, color_constancy_img, contour_image
+    return diagnosis, color_constancy_img, contour_image, asymmetry_score

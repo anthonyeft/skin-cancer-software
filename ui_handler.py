@@ -4,10 +4,10 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal, QObject
 
 from process_image import processImage
-from utils import convertArrayToPixmap
+from utils import convertArrayToPixmap, ABCWidget
 
 class DiagnosisWorker(QObject):
-    finished = pyqtSignal(str, object, object)
+    finished = pyqtSignal(str, object, object, float)
 
     def __init__(self, imagePath):
         super().__init__()
@@ -15,8 +15,8 @@ class DiagnosisWorker(QObject):
 
     def run(self):
         # Perform the image processing algorithms
-        diagnosis, color_constancy_image, contour_image = processImage(self.imagePath)
-        self.finished.emit(diagnosis, color_constancy_image, contour_image)
+        diagnosis, color_constancy_image, contour_image, asymmetry_score = processImage(self.imagePath)
+        self.finished.emit(diagnosis, color_constancy_image, contour_image, asymmetry_score)
 
 class mainApplication(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -47,6 +47,10 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         self.colour_constancy_image_previous_button.clicked.connect(self.switchToOriginalImage)
 
         self.segmented_image_previous_button.clicked.connect(self.switchToColorConstancyImage)
+
+        # Report page ABC metrics
+        self.ABCWidgetA = ABCWidget(self.A_placeholder_widget)
+        self.A_placeholder_widget.layout().addWidget(self.ABCWidgetA)
 
     def switch_to_dashboard(self):
         self.main_stacked_widget.setCurrentIndex(0)
@@ -93,9 +97,8 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         else:
             self.image_display_label.setText("Please upload an image before submitting.")
         
-    def diagnosisComplete(self, diagnosis, color_constancy_image, contour_image):
-        #self.diagnosis = diagnosis
-        self.switchToReport(diagnosis, color_constancy_image, contour_image)
+    def diagnosisComplete(self, diagnosis, color_constancy_image, contour_image, asymmetry_score):
+        self.switchToReport(diagnosis, color_constancy_image, contour_image, asymmetry_score)
         if self.progress < 100:
             self.progress = 100
             self.progress_bar.setValue(self.progress)
@@ -109,7 +112,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         if self.progress >= 100:
             self.timer.stop()
 
-    def switchToReport(self, diagnosis, color_constancy_image, contour_image):
+    def switchToReport(self, diagnosis, color_constancy_image, contour_image, asymmetry_score):
         self.diagnosis_label.setText(f"Diagnosis: {diagnosis}")
 
         # Display the original image
@@ -131,6 +134,8 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         self.segmented_image_label.setFixedWidth(contour_pixmap_scaled.width())
 
         QTimer.singleShot(1000, lambda: self.quick_scan_stacked_widget.setCurrentIndex(2))
+
+        QTimer.singleShot(100, lambda: self.ABCWidgetA.animateNeedle(asymmetry_score))  # Animate the speedometer needle
     
     def switchToOriginalImage(self):
         self.report_left_panel_stacked_widget.setCurrentIndex(0)
