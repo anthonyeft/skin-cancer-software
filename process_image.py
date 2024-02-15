@@ -148,7 +148,7 @@ def calculate_asymmetry(mask):
     left_right_symmetry = np.sum(np.abs(left_half - np.flip(right_half, axis=1)))
 
     # Threshold for significant shape asymmetry
-    asymmetry_threshold = 0.02
+    asymmetry_threshold = 0.04
 
     # Calculate points based on asymmetry
     points = 0
