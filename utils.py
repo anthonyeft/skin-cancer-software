@@ -1,24 +1,24 @@
 import numpy as np
 from PyQt5.QtGui import QImage, QPixmap, QPainter
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsPixmapItem, QGraphicsView
-from PyQt5.QtCore import QPropertyAnimation, QEasingCurve, QRectF, QSize, Qt
+from PyQt5.QtCore import QPropertyAnimation, QEasingCurve, QRectF, QSize, Qt, QTimer, QDateTime
 
 
 class ABCWidget(QGraphicsView):
-    def __init__(self, parent=None):
+    def __init__(self, letter, parent=None):
         super().__init__(parent)
-        self.setupGraphics()
+        self.setupGraphics(letter)
 
-    def setupGraphics(self):
+    def setupGraphics(self, letter):
         self.scene = QGraphicsScene(self)
         self.setScene(self.scene)
         self.setRenderHint(QPainter.Antialiasing)
 
         # Define the desired size
-        desiredSize = QSize(200, 200)
+        desiredSize = QSize(230, 230)
 
         # Load and resize the speedometer background
-        self.speedometerPixmap = QPixmap("ui/static/images/A.png").scaled(desiredSize, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.speedometerPixmap = QPixmap(f"ui/static/images/{letter}.png").scaled(desiredSize, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.speedometerItem = QGraphicsPixmapItem(self.speedometerPixmap)
         self.scene.addItem(self.speedometerItem)
 
@@ -32,16 +32,28 @@ class ABCWidget(QGraphicsView):
         self.setSceneRect(QRectF(self.speedometerPixmap.rect()))
 
     def animateNeedle(self, score):
-        # Map the score (0 to 1) to the angle range (0 to 260 degrees)
-        angle = score * 260
+        self.targetAngle = score * 260
+        self.currentAngle = 0
+        self.animationDuration = 2000  # Duration in milliseconds
+        self.startTime = QDateTime.currentMSecsSinceEpoch()
+        self.easingCurve = QEasingCurve(QEasingCurve.OutCubic)
 
-        # Create an animation for the rotation
-        self.animation = QPropertyAnimation(self.needleItem, b"rotation")
-        self.animation.setDuration(2000)  # Duration in milliseconds
-        self.animation.setStartValue(0)  # Starting angle
-        self.animation.setEndValue(angle)  # Ending angle
-        self.animation.setEasingCurve(QEasingCurve.OutCubic)  # Animation effect
-        self.animation.start()
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.updateNeedleRotation)
+        self.timer.start(16)  # 60 FPS
+
+    def updateNeedleRotation(self):
+        currentTime = QDateTime.currentMSecsSinceEpoch()
+        elapsed = currentTime - self.startTime
+        progress = elapsed / self.animationDuration
+
+        if progress < 1.0:
+            easedProgress = self.easingCurve.valueForProgress(progress)
+            angle = self.currentAngle + (self.targetAngle - self.currentAngle) * easedProgress
+            self.needleItem.setRotation(angle)
+        else:
+            self.needleItem.setRotation(self.targetAngle)
+            self.timer.stop()
 
 
 def convertArrayToPixmap(array):
@@ -56,3 +68,15 @@ def convertArrayToPixmap(array):
         return QPixmap.fromImage(QImage(array.data, width, height, bytesPerLine, QImage.Format_RGB888))
     else:
         raise ValueError("Unsupported array shape for QPixmap conversion.")
+
+
+def _weight_mean_color(graph, src, dst, n):
+    diff = graph.nodes[dst]['mean color'] - graph.nodes[n]['mean color']
+    diff = np.linalg.norm(diff)
+    return {'weight': diff}
+
+def merge_mean_color(graph, src, dst):
+    graph.nodes[dst]['total color'] += graph.nodes[src]['total color']
+    graph.nodes[dst]['pixel count'] += graph.nodes[src]['pixel count']
+    graph.nodes[dst]['mean color'] = (graph.nodes[dst]['total color'] /
+                                      graph.nodes[dst]['pixel count'])

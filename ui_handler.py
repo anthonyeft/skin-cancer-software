@@ -7,7 +7,7 @@ from process_image import processImage
 from utils import convertArrayToPixmap, ABCWidget
 
 class DiagnosisWorker(QObject):
-    finished = pyqtSignal(str, object, object, float)
+    finished = pyqtSignal(str, object, object, object, float, float, float)
 
     def __init__(self, imagePath):
         super().__init__()
@@ -15,8 +15,8 @@ class DiagnosisWorker(QObject):
 
     def run(self):
         # Perform the image processing algorithms
-        diagnosis, color_constancy_image, contour_image, asymmetry_score = processImage(self.imagePath)
-        self.finished.emit(diagnosis, color_constancy_image, contour_image, asymmetry_score)
+        diagnosis, color_constancy_image, contour_image, colors_image, asymmetry_score, border_score, color_score = processImage(self.imagePath)
+        self.finished.emit(diagnosis, color_constancy_image, contour_image, colors_image, asymmetry_score, border_score, color_score)
 
 class mainApplication(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -47,10 +47,22 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         self.colour_constancy_image_previous_button.clicked.connect(self.switchToOriginalImage)
 
         self.segmented_image_previous_button.clicked.connect(self.switchToColorConstancyImage)
+        self.segmented_image_next_button.clicked.connect(self.switchToColorsImage)
+
+        self.colors_image_previous_button.clicked.connect(self.switchToSegmentedImage)
+        self.colors_image_next_button.clicked.connect(self.switchToOriginalImage)
+
+        self.back_to_scan_button.clicked.connect(self.switch_to_quick_scan)
 
         # Report page ABC metrics
-        self.ABCWidgetA = ABCWidget(self.A_placeholder_widget)
+        self.ABCWidgetA = ABCWidget("A", self.A_placeholder_widget)
         self.A_placeholder_widget.layout().addWidget(self.ABCWidgetA)
+
+        self.ABCWidgetB = ABCWidget("B", self.B_placeholder_widget)
+        self.B_placeholder_widget.layout().addWidget(self.ABCWidgetB)
+
+        self.ABCWidgetC = ABCWidget("C", self.C_placeholder_widget)
+        self.C_placeholder_widget.layout().addWidget(self.ABCWidgetC)
 
     def switch_to_dashboard(self):
         self.main_stacked_widget.setCurrentIndex(0)
@@ -60,6 +72,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
     
     def switch_to_quick_scan(self):
         self.main_stacked_widget.setCurrentIndex(2)
+        self.quick_scan_stacked_widget.setCurrentIndex(0)
     
     def openFileDialog(self):
         options = QFileDialog.Options()
@@ -97,8 +110,8 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         else:
             self.image_display_label.setText("Please upload an image before submitting.")
         
-    def diagnosisComplete(self, diagnosis, color_constancy_image, contour_image, asymmetry_score):
-        self.switchToReport(diagnosis, color_constancy_image, contour_image, asymmetry_score)
+    def diagnosisComplete(self, diagnosis, color_constancy_image, contour_image, colors_image, asymmetry_score, border_score, color_score):
+        self.switchToReport(diagnosis, color_constancy_image, contour_image, colors_image, asymmetry_score, border_score, color_score)
         if self.progress < 100:
             self.progress = 100
             self.progress_bar.setValue(self.progress)
@@ -112,7 +125,16 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         if self.progress >= 100:
             self.timer.stop()
 
-    def switchToReport(self, diagnosis, color_constancy_image, contour_image, asymmetry_score):
+    def switchToReport(
+    self,
+    diagnosis,
+    color_constancy_image,
+    contour_image,
+    colors_image,
+    asymmetry_score,
+    border_score,
+    color_score,
+    ):
         self.diagnosis_label.setText(f"Diagnosis: {diagnosis}")
 
         # Display the original image
@@ -133,10 +155,21 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         self.segmented_image_label.setPixmap(contour_pixmap_scaled)
         self.segmented_image_label.setFixedWidth(contour_pixmap_scaled.width())
 
-        QTimer.singleShot(1000, lambda: self.quick_scan_stacked_widget.setCurrentIndex(2))
+        # Display the colors image
+        colors_pixmap = convertArrayToPixmap(colors_image)
+        colors_pixmap_scaled = colors_pixmap.scaled(self.colors_image_label.width(), self.colors_image_label.height(), Qt.KeepAspectRatio)
+        self.colors_image_label.setPixmap(colors_pixmap_scaled)
+        self.colors_image_label.setFixedWidth(colors_pixmap_scaled.width())
 
-        QTimer.singleShot(100, lambda: self.ABCWidgetA.animateNeedle(asymmetry_score))  # Animate the speedometer needle
+        QTimer.singleShot(500, lambda: self.quick_scan_stacked_widget.setCurrentIndex(2))
+
+        QTimer.singleShot(1300, lambda: self.animateNeedles(asymmetry_score, border_score, color_score))
     
+    def animateNeedles(self, asymmetry_score, border_score, color_score):
+        self.ABCWidgetA.animateNeedle(asymmetry_score)
+        self.ABCWidgetB.animateNeedle(border_score)
+        self.ABCWidgetC.animateNeedle(color_score)
+
     def switchToOriginalImage(self):
         self.report_left_panel_stacked_widget.setCurrentIndex(0)
     
@@ -145,3 +178,6 @@ class mainApplication(QMainWindow, Ui_MainWindow):
     
     def switchToSegmentedImage(self):
         self.report_left_panel_stacked_widget.setCurrentIndex(2)
+
+    def switchToColorsImage(self):
+        self.report_left_panel_stacked_widget.setCurrentIndex(3)
