@@ -13,12 +13,12 @@ import matplotlib.pyplot as plt
 Initialize the segmentation and classification models and load the weights.
 '''
 segmentation_model = mit_unet()
-segmentation_weights_path = 'D:/weights/mit_unet.pth'
+segmentation_weights_path = 'C:/weights/mit_unet.pth'
 segmentation_model.load_state_dict(torch.load(segmentation_weights_path, map_location='cpu'))
 segmentation_model.eval()
 
 classification_model = caformer_b36(num_classes=7)
-caformer_weights_path = 'D:/weights/caformer_b36.pth'
+caformer_weights_path = 'C:/weights/caformer_b36.pth'
 classification_model.load_state_dict(torch.load(caformer_weights_path, map_location='cpu'))
 classification_model.eval()
 
