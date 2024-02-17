@@ -5,9 +5,14 @@ from albumentations.pytorch import ToTensorV2
 from models.classification.model import caformer_b36
 from models.segmentation.segmentation_model import mit_unet
 import numpy as np
+
 from skimage import segmentation, graph
+from skimage import feature
+
 from utils import merge_mean_color, _weight_mean_color
 import matplotlib.pyplot as plt
+
+
 
 '''
 Initialize the segmentation and classification models and load the weights.
@@ -92,8 +97,45 @@ def segment_image(image):
 
     return binary_mask, contours, contour_image
 
+"""
+ABC Score Calculation
+"""
 
-def calculate_asymmetry(mask):
+def calculate_color_asymmetry(image, mask):
+    # Convert the image to LAB color space
+    lab_image = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
+
+    height, width = lab_image.shape[:2]
+
+    # Divide the image into halves
+    left_half = lab_image[:, :width // 2]
+    right_half = lab_image[:, width // 2:]
+    top_half = lab_image[:height // 2, :]
+    bottom_half = lab_image[height // 2:, :]
+
+    # Calculate mean color of each half where the mask is present
+    mean_color_left = np.mean(left_half[mask[:, :width // 2] > 0], axis=0)
+    mean_color_right = np.mean(right_half[mask[:, width // 2:] > 0], axis=0)
+    mean_color_top = np.mean(top_half[mask[:height // 2, :] > 0], axis=0)
+    mean_color_bottom = np.mean(bottom_half[mask[height // 2:, :] > 0], axis=0)
+
+    # Define color asymmetry threshold
+    color_asymmetry_threshold = 15  # Adjust this threshold as needed
+
+    color_h = 0
+    color_v = 0
+
+    if np.linalg.norm(mean_color_left - mean_color_right) > color_asymmetry_threshold:
+        color_h = 1
+    if np.linalg.norm(mean_color_top - mean_color_bottom) > color_asymmetry_threshold:
+        color_v = 1
+    
+    print("Horizontal colour asymmetry", np.linalg.norm(mean_color_left - mean_color_right))
+    print("Vertical colour asymmetry", np.linalg.norm(mean_color_top - mean_color_bottom))
+
+    return color_h, color_v
+
+def calculate_asymmetry(image, mask):
     mask = mask.astype(np.uint8) * 255
 
     # Calculate image moments
@@ -130,6 +172,7 @@ def calculate_asymmetry(mask):
 
     # Rotate and translate mask
     rotated_mask = cv2.warpAffine(mask, rotation_matrix, (mask.shape[1], mask.shape[0]))
+    rotated_image = cv2.warpAffine(image, rotation_matrix, (mask.shape[1], mask.shape[0]))
 
     # Calculate symmetry on the rotated mask
     # Adjust for odd dimensions
@@ -148,18 +191,18 @@ def calculate_asymmetry(mask):
     left_right_symmetry = np.sum(np.abs(left_half - np.flip(right_half, axis=1)))
 
     # Threshold for significant shape asymmetry
-    asymmetry_threshold = 0.04
+    asymmetry_threshold = 0.035
 
-    # Calculate points based on asymmetry
-    points = 0
+    shape_h = 0
+    shape_v = 0
+
     if upper_lower_symmetry / (np.sum(rotated_mask) + 1e-6) > asymmetry_threshold:
-        points += 1
+        shape_h = 1
     if left_right_symmetry / (np.sum(rotated_mask) + 1e-6) > asymmetry_threshold:
-        points += 1
-
-    print("Asymmetry points:", points)
-    print("Upper-Lower symmetry:", upper_lower_symmetry / (np.sum(rotated_mask) + 1e-6))
-    print("Left-Right symmetry:", left_right_symmetry / (np.sum(rotated_mask) + 1e-6))
+        shape_v = 1
+    
+    print("Upper-Lower shape symmetry:", upper_lower_symmetry / (np.sum(rotated_mask) + 1e-6))
+    print("Left-Right shape symmetry:", left_right_symmetry / (np.sum(rotated_mask) + 1e-6))
 
     # Visualization
     plt.figure(figsize=(10, 5))
@@ -169,12 +212,6 @@ def calculate_asymmetry(mask):
     plt.imshow(mask, cmap='gray')
     plt.scatter(cx, cy, c='red', s=10)  # centroid
     plt.title('Original Mask with Centroid')
-
-    # Draw the major axis line
-    length = 100  # Length of the line
-    x2 = cx + length * eigenvectors[0, 0]
-    y2 = cy + length * eigenvectors[0, 1]
-    plt.plot([cx, x2], [cy, y2], 'r-')
 
     # Plot the rotated mask with symmetry lines
     plt.subplot(1, 2, 2)
@@ -186,19 +223,68 @@ def calculate_asymmetry(mask):
     plt.savefig('asymmetry_visualization.png')
     plt.close()
 
-    return points
+    color_h, color_v = calculate_color_asymmetry(rotated_image, rotated_mask)
 
-def calculate_border_irregularity(contour):
-    # Calculate the perimeter of the mask
-    perimeter = cv2.arcLength(contour, True)
+    points = 0
+    if color_h == 1 or shape_h == 1:
+        points += 1
+    if color_v == 1 or shape_v == 1:
+        points += 1
 
-    # Calculate the area of the mask
-    area = cv2.contourArea(contour)
+    print("Horizontal shape asymmetry", shape_h)
+    print("Vertical shape asymmetry", shape_v)
+    print("Horizontal colour asymmetry", color_h)
+    print("Vertical colour asymmetry", color_v)
+    print("Points", points)
 
+    return points / 2
+
+
+def calculate_border_irregularity(
+    image,
+    mask,
+    contour,
+    circularity_threshold=0.2,
+    convexity_threshold=0.95,
+    edge_threshold = 0.8
+    ):
+    points = 0
+    mask = mask.astype(np.uint8) * 255
+    
     # Calculate the circularity
+    perimeter = cv2.arcLength(contour, True)
+    area = cv2.contourArea(contour)
     circularity = (4 * np.pi * area) / (perimeter ** 2 + 1e-6)
+    if 1 - circularity > circularity_threshold:
+        points += 1
+    
+    # Calculate the convexity
+    hull = cv2.convexHull(contour)
+    area_hull = cv2.contourArea(hull)
+    convexity = area / (area_hull + 1e-6)
+    if convexity < convexity_threshold:
+        points += 1
+    
+    # Calculate the amount of detected edges within 5px of the boundary
+    image = cv2.bilateralFilter(image, 9, 75, 75)
+    edges = cv2.Canny(image, 100, 100)
+    kernel = np.ones((40, 40), np.uint8)
+    eroded_mask = cv2.erode(mask, kernel, iterations=1)
+    border_mask = cv2.subtract(mask, eroded_mask)
+    border_edges = cv2.bitwise_and(edges, edges, mask=border_mask)
+    edge_count = np.sum(border_edges > 0)
+    normalized_edge_score = edge_count / perimeter
 
-    return 1 - circularity
+    if normalized_edge_score > edge_threshold:
+        points += 1
+
+    print("Circularity:", 1 - circularity)
+    print("Convexity:", convexity)
+    print("Edge Feature Score:", normalized_edge_score)
+    print("Points", points / 3)
+
+    return points / 3
+
 
 def calculate_color_count(img, mask):
     mask = mask.astype(np.uint8) * 255
@@ -239,38 +325,46 @@ def calculate_color_count(img, mask):
             unique_color_list.append(color)
 
     # Calculate the color score
-    color_score = len(unique_color_list) / 6
+    color_score = len(unique_color_list) / 4
 
-    # Create an image to visualize the color regions
+    if color_score > 1:
+        color_score = 1
+
+    # Create an image to visualize the color regions in RGB space
     colors_image = np.zeros_like(img)
     for label, color in mean_colors.items():
         region_mask = labels2 == label
         colors_image[region_mask] = color
-    
-    non_black_mask = np.any(colors_image != [0, 0, 0], axis=-1)
+
+    # Apply the original mask to ensure colors do not extend beyond the lesion
+    masked_colors_image = cv2.bitwise_and(colors_image, colors_image, mask=mask)
+
+    # Overlay the masked_colors_image onto the original image
+    non_black_mask = np.any(masked_colors_image != [0, 0, 0], axis=-1)
     overlay_image = img.copy()
-    overlay_image[non_black_mask] = colors_image[non_black_mask]
+    overlay_image[non_black_mask] = masked_colors_image[non_black_mask]
 
     return color_score, overlay_image
     
 
 def calculate_abc_score(mask, contour, img):
-    # Calculate ABC score
-    # A: Asymmetry
-    # B: Border Irregularity
-    # C: Color
+    # Calculate ABC scores
 
-    asymmetry_score = calculate_asymmetry(mask)
+    asymmetry_score = calculate_asymmetry(img, mask)
 
-    border_irregularity_score = calculate_border_irregularity(contour)
+    border_irregularity_score = calculate_border_irregularity(img, mask, contour)
 
     color_score, colors_image = calculate_color_count(img, mask)
 
     return asymmetry_score, border_irregularity_score, color_score, colors_image
 
+"""
+End of ABC Score Calculation
+"""
+
 
 def classify_image(image):
-    # Define the transformations to be applied to the image
+    # The transformations to be applied to the image
     test_transform = A.Compose([
         A.Resize(384, 384),
         A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
@@ -291,6 +385,11 @@ def classify_image(image):
     diagnosis_name = diagnosis_mapping.get(predicted_class)
 
     return diagnosis_name
+
+
+"""
+Final function to process the image
+"""
 
 def processImage(image_path):
     # Apply color constancy
