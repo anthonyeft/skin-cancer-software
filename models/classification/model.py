@@ -336,6 +336,7 @@ class MetaFormerBlock(nn.Module):
                     self.token_mixer(self.norm1(x))
                 )
             )
+        x_after_norm2 = self.norm2(x)
         x = self.res_scale2(x) + \
             self.layer_scale2(
                 self.drop_path2(
@@ -525,14 +526,6 @@ class MetaFormer(nn.Module):
             ('fc', final)
         ]))
 
-        self.apply(self._init_weights)
-
-    def _init_weights(self, m):
-        if isinstance(m, (nn.Conv2d, nn.Linear)):
-            trunc_normal_(m.weight, std=.02)
-            if m.bias is not None:
-                nn.init.constant_(m.bias, 0)
-
     @torch.jit.ignore
     def get_classifier(self):
         return self.head.fc
@@ -567,7 +560,6 @@ class MetaFormer(nn.Module):
         x = self.forward_features(x)
         x = self.forward_head(x)
         return x
-
 
 def _create_metaformer(**kwargs):
     # Create an instance of the MetaFormer model

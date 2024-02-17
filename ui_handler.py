@@ -7,7 +7,7 @@ from process_image import processImage
 from utils import convertArrayToPixmap, ABCWidget
 
 class DiagnosisWorker(QObject):
-    finished = pyqtSignal(str, object, object, object, float, float, float)
+    finished = pyqtSignal(str, object, object, object, object, float, float, float)
 
     def __init__(self, imagePath):
         super().__init__()
@@ -15,8 +15,8 @@ class DiagnosisWorker(QObject):
 
     def run(self):
         # Perform the image processing algorithms
-        diagnosis, color_constancy_image, contour_image, colors_image, asymmetry_score, border_score, color_score = processImage(self.imagePath)
-        self.finished.emit(diagnosis, color_constancy_image, contour_image, colors_image, asymmetry_score, border_score, color_score)
+        diagnosis, color_constancy_image, contour_image, cam_image, colors_image, asymmetry_score, border_score, color_score = processImage(self.imagePath)
+        self.finished.emit(diagnosis, color_constancy_image, contour_image, cam_image, colors_image, asymmetry_score, border_score, color_score)
 
 class mainApplication(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -43,13 +43,16 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         # Report page buttons
         self.original_image_next_button.clicked.connect(self.switchToColorConstancyImage)
 
-        self.colour_constancy_image_next_button.clicked.connect(self.switchToSegmentedImage)
         self.colour_constancy_image_previous_button.clicked.connect(self.switchToOriginalImage)
+        self.colour_constancy_image_next_button.clicked.connect(self.switchToSegmentedImage)
 
         self.segmented_image_previous_button.clicked.connect(self.switchToColorConstancyImage)
-        self.segmented_image_next_button.clicked.connect(self.switchToColorsImage)
+        self.segmented_image_next_button.clicked.connect(self.switchToCamImage)
 
-        self.colors_image_previous_button.clicked.connect(self.switchToSegmentedImage)
+        self.cam_image_previous_button.clicked.connect(self.switchToSegmentedImage)
+        self.cam_image_next_button.clicked.connect(self.switchToColorsImage)
+
+        self.colors_image_previous_button.clicked.connect(self.switchToCamImage)
         self.colors_image_next_button.clicked.connect(self.switchToOriginalImage)
 
         self.back_to_scan_button.clicked.connect(self.switch_to_quick_scan)
@@ -96,7 +99,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
             # Setup the progress bar
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.updateProgressBar)
-            self.timer.start(25)
+            self.timer.start(150)
             self.progress = 0
 
             # Setup and start the diagnosis thread
@@ -110,8 +113,8 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         else:
             self.image_display_label.setText("Please upload an image before submitting.")
         
-    def diagnosisComplete(self, diagnosis, color_constancy_image, contour_image, colors_image, asymmetry_score, border_score, color_score):
-        self.switchToReport(diagnosis, color_constancy_image, contour_image, colors_image, asymmetry_score, border_score, color_score)
+    def diagnosisComplete(self, diagnosis, color_constancy_image, contour_image, cam_image, colors_image, asymmetry_score, border_score, color_score):
+        self.switchToReport(diagnosis, color_constancy_image, contour_image, cam_image, colors_image, asymmetry_score, border_score, color_score)
         if self.progress < 100:
             self.progress = 100
             self.progress_bar.setValue(self.progress)
@@ -130,6 +133,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
     diagnosis,
     color_constancy_image,
     contour_image,
+    cam_image,
     colors_image,
     asymmetry_score,
     border_score,
@@ -139,6 +143,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
 
         # Display the original image
         original_image_pixmap = QPixmap(self.currentImagePath)
+        original_image_pixmap_scaled = original_image_pixmap.scaled(600, 450, Qt.IgnoreAspectRatio)
         original_image_pixmap_scaled = original_image_pixmap.scaled(self.original_image_label.width(), self.original_image_label.height(), Qt.KeepAspectRatio)
         self.original_image_label.setPixmap(original_image_pixmap_scaled)
         self.original_image_label.setFixedWidth(original_image_pixmap_scaled.width())
@@ -154,6 +159,12 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         contour_pixmap_scaled = contour_pixmap.scaled(self.segmented_image_label.width(), self.segmented_image_label.height(), Qt.KeepAspectRatio)
         self.segmented_image_label.setPixmap(contour_pixmap_scaled)
         self.segmented_image_label.setFixedWidth(contour_pixmap_scaled.width())
+
+        # Display the cam image
+        cam_pixmap = convertArrayToPixmap(cam_image)
+        cam_pixmap_scaled = cam_pixmap.scaled(self.cam_image_label.width(), self.cam_image_label.height(), Qt.KeepAspectRatio)
+        self.cam_image_label.setPixmap(cam_pixmap_scaled)
+        self.cam_image_label.setFixedWidth(cam_pixmap_scaled.width())
 
         # Display the colors image
         colors_pixmap = convertArrayToPixmap(colors_image)
@@ -178,6 +189,9 @@ class mainApplication(QMainWindow, Ui_MainWindow):
     
     def switchToSegmentedImage(self):
         self.report_left_panel_stacked_widget.setCurrentIndex(2)
+    
+    def switchToCamImage(self):
+        self.report_left_panel_stacked_widget.setCurrentIndex(3)
 
     def switchToColorsImage(self):
-        self.report_left_panel_stacked_widget.setCurrentIndex(3)
+        self.report_left_panel_stacked_widget.setCurrentIndex(4)

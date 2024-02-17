@@ -8,9 +8,9 @@ import numpy as np
 
 from skimage import segmentation, graph
 
-from utils import merge_mean_color, _weight_mean_color
+from utils import merge_mean_color, _weight_mean_color, reshape_transform
 import matplotlib.pyplot as plt
-
+from pytorch_grad_cam import GradCAM
 
 
 '''
@@ -25,6 +25,10 @@ classification_model = caformer_b36(num_classes=7)
 caformer_weights_path = 'C:/weights/caformer_b36.pth'
 classification_model.load_state_dict(torch.load(caformer_weights_path, map_location='cpu'))
 classification_model.eval()
+
+
+target_layers = [classification_model.stages[-1].blocks[-1].norm2]
+cam = GradCAM(model=classification_model, target_layers=target_layers, reshape_transform=reshape_transform)
 
 diagnosis_mapping = {
     0: "Melanoma Cancer",
@@ -129,9 +133,6 @@ def calculate_color_asymmetry(image, mask):
     if np.linalg.norm(mean_color_top - mean_color_bottom) > color_asymmetry_threshold:
         color_v = 1
     
-    print("Horizontal colour asymmetry", np.linalg.norm(mean_color_left - mean_color_right))
-    print("Vertical colour asymmetry", np.linalg.norm(mean_color_top - mean_color_bottom))
-
     return color_h, color_v
 
 def calculate_asymmetry(image, mask):
@@ -200,9 +201,6 @@ def calculate_asymmetry(image, mask):
     if left_right_symmetry / (np.sum(rotated_mask) + 1e-6) > asymmetry_threshold:
         shape_v = 1
     
-    print("Upper-Lower shape symmetry:", upper_lower_symmetry / (np.sum(rotated_mask) + 1e-6))
-    print("Left-Right shape symmetry:", left_right_symmetry / (np.sum(rotated_mask) + 1e-6))
-
     # Visualization
     plt.figure(figsize=(10, 5))
 
@@ -229,12 +227,6 @@ def calculate_asymmetry(image, mask):
         points += 1
     if color_v == 1 or shape_v == 1:
         points += 1
-
-    print("Horizontal shape asymmetry", shape_h)
-    print("Vertical shape asymmetry", shape_v)
-    print("Horizontal colour asymmetry", color_h)
-    print("Vertical colour asymmetry", color_v)
-    print("Points", points)
 
     return points / 2
 
@@ -276,11 +268,6 @@ def calculate_border_irregularity(
 
     if normalized_edge_score > edge_threshold:
         points += 1
-
-    print("Circularity:", 1 - circularity)
-    print("Convexity:", convexity)
-    print("Edge Feature Score:", normalized_edge_score)
-    print("Points", points / 3)
 
     return points / 3
 
@@ -376,15 +363,43 @@ def classify_image(image):
     transformed = test_transform(image=color_constancy_img)
     input_tensor = transformed['image'].unsqueeze(0)  # Add batch dimension
 
+    grayscale_cam = cam(input_tensor=input_tensor, targets=None)
+    grayscale_cam = grayscale_cam[0, :]
+    visualization = np.uint8(255 * grayscale_cam)
+
     # Make prediction
-    output = classification_model(input_tensor)
+    output = cam.outputs
+    
     predicted_class = torch.argmax(output, dim=1).item()
 
     # Map the predicted label number to its corresponding diagnosis name
     diagnosis_name = diagnosis_mapping.get(predicted_class)
 
-    return diagnosis_name
+    return diagnosis_name, visualization
 
+def save_cam_image(original_image, cam_image, file_name='cam_visualization.png'):
+    # Apply color map directly to uint8 image
+    cam_image = cv2.applyColorMap(cam_image, cv2.COLORMAP_JET)
+    cam_image = cv2.resize(cam_image, (original_image.shape[1], original_image.shape[0]))
+
+    # Convert both images to float32 for overlay
+    cam_image_float = np.float32(cam_image) / 255
+    original_image_float = np.float32(original_image) / 255
+
+    # Overlay the heatmap on the original image
+    overlaid_image = 0.7 * original_image_float + 0.3 * cam_image_float
+
+    # Convert back to uint8 for displaying and saving
+    overlaid_image_uint8 = np.uint8(255 * overlaid_image)
+
+    # Plot and save the figure
+    plt.figure(figsize=(10, 10))
+    plt.imshow(overlaid_image_uint8)
+    plt.axis('off')
+    plt.savefig(file_name)
+    plt.close()
+
+    return overlaid_image_uint8
 
 """
 Final function to process the image
@@ -404,11 +419,12 @@ def processImage(image_path):
     asymmetry_score, border_irregularity_score, color_score, colors_image = calculate_abc_score(binary_mask, contours[0], color_constancy_img)
 
     # Classify the image
-    diagnosis = classify_image(image_resized)
+    diagnosis, cam_image = classify_image(image_resized)
 
-    print("Asymmetry score:", asymmetry_score)
-    print("Border irregularity score:", border_irregularity_score)
-    print("Color score:", color_score)
-    print("Predicted class:", diagnosis)
+    # Classify the image and get the CAM
+    diagnosis, cam_image = classify_image(image_resized)
 
-    return diagnosis, color_constancy_img, contour_image, colors_image, asymmetry_score, border_irregularity_score, color_score
+    # Save the CAM image
+    gradcam_image = save_cam_image(color_constancy_img, cam_image)
+
+    return diagnosis, color_constancy_img, contour_image, gradcam_image, colors_image, asymmetry_score, border_irregularity_score, color_score

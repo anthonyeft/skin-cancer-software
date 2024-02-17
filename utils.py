@@ -80,3 +80,11 @@ def merge_mean_color(graph, src, dst):
     graph.nodes[dst]['pixel count'] += graph.nodes[src]['pixel count']
     graph.nodes[dst]['mean color'] = (graph.nodes[dst]['total color'] /
                                       graph.nodes[dst]['pixel count'])
+
+def reshape_transform(tensor, height=12, width=12):
+    result = tensor.reshape(tensor.size(0),
+        height, width, tensor.size(2))
+
+    # Bring the channels to the first dimension, like in CNNs.
+    result = result.transpose(2, 3).transpose(1, 2)
+    return result
