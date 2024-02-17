@@ -7,7 +7,6 @@ from models.segmentation.segmentation_model import mit_unet
 import numpy as np
 
 from skimage import segmentation, graph
-from skimage import feature
 
 from utils import merge_mean_color, _weight_mean_color
 import matplotlib.pyplot as plt
