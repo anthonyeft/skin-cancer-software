@@ -336,7 +336,6 @@ class MetaFormerBlock(nn.Module):
                     self.token_mixer(self.norm1(x))
                 )
             )
-        x_after_norm2 = self.norm2(x)
         x = self.res_scale2(x) + \
             self.layer_scale2(
                 self.drop_path2(

@@ -10,8 +10,7 @@ from skimage import segmentation, graph
 
 from utils import merge_mean_color, _weight_mean_color, reshape_transform
 import matplotlib.pyplot as plt
-from pytorch_grad_cam import GradCAM
-
+from pytorch_grad_cam import EigenGradCAM
 
 '''
 Initialize the segmentation and classification models and load the weights.
@@ -28,7 +27,7 @@ classification_model.eval()
 
 
 target_layers = [classification_model.stages[-1].blocks[-1].norm2]
-cam = GradCAM(model=classification_model, target_layers=target_layers, reshape_transform=reshape_transform)
+cam = EigenGradCAM(model=classification_model, target_layers=target_layers, reshape_transform=reshape_transform)
 
 diagnosis_mapping = {
     0: "Melanoma Cancer",
@@ -311,7 +310,7 @@ def calculate_color_count(img, mask):
             unique_color_list.append(color)
 
     # Calculate the color score
-    color_score = len(unique_color_list) / 4
+    color_score = (len(unique_color_list) - 1) / 4
 
     if color_score > 1:
         color_score = 1

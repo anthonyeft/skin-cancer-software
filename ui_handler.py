@@ -79,7 +79,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
     
     def openFileDialog(self):
         options = QFileDialog.Options()
-        initialDir = "D:\\Science Fair 2024\\2018_data\\class_separated_data"  # Replace with your desired path
+        initialDir = "D:\\test_images"  # Replace with your desired path
         fileName, _ = QFileDialog.getOpenFileName(self, "Open Image", initialDir, "Image Files (*.jpg *.png)", options=options)
         if fileName:
             try:
@@ -99,7 +99,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
             # Setup the progress bar
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.updateProgressBar)
-            self.timer.start(150)
+            self.timer.start(135)
             self.progress = 0
 
             # Setup and start the diagnosis thread
