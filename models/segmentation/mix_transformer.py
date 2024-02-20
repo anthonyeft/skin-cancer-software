@@ -312,7 +312,9 @@ class MixVisionTransformer(nn.Module):
         for i, blk in enumerate(self.block1):
             x = blk(x, H, W)
         x = self.norm1(x)
+        print("Stage 1 output before reshaping", x.shape)
         x = x.reshape(B, H, W, -1).permute(0, 3, 1, 2).contiguous()
+        print("Stage 1 output after reshaping: ", x.shape)
         outs.append(x)
 
         # stage 2
@@ -320,7 +322,9 @@ class MixVisionTransformer(nn.Module):
         for i, blk in enumerate(self.block2):
             x = blk(x, H, W)
         x = self.norm2(x)
+        print("Stage 2 output before reshaping", x.shape)
         x = x.reshape(B, H, W, -1).permute(0, 3, 1, 2).contiguous()
+        print("Stage 2 output after reshaping: ", x.shape)
         outs.append(x)
 
         # stage 3
@@ -328,7 +332,9 @@ class MixVisionTransformer(nn.Module):
         for i, blk in enumerate(self.block3):
             x = blk(x, H, W)
         x = self.norm3(x)
+        print("Stage 3 output before reshaping", x.shape)
         x = x.reshape(B, H, W, -1).permute(0, 3, 1, 2).contiguous()
+        print("Stage 3 output after reshaping: ", x.shape)
         outs.append(x)
 
         # stage 4
@@ -336,7 +342,9 @@ class MixVisionTransformer(nn.Module):
         for i, blk in enumerate(self.block4):
             x = blk(x, H, W)
         x = self.norm4(x)
+        print("Stage 4 output before reshaping", x.shape)
         x = x.reshape(B, H, W, -1).permute(0, 3, 1, 2).contiguous()
+        print("Stage 4 output after reshaping: ", x.shape)
         outs.append(x)
 
         return outs
