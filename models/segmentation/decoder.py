@@ -26,24 +26,24 @@ class DecoderBlock(nn.Module):
         x = F.interpolate(x, scale_factor=2, mode="nearest")
         if skip is not None:
             x = torch.cat([x, skip], dim=1)
+        print("decoder block input", x.shape)
         x = self.conv1(x)
         x = self.conv2(x)
+        print("decoder block output", x.shape)
         return x
 
 class UnetDecoder(nn.Module):
     def __init__(self, encoder_channels, decoder_channels, use_batchnorm=True):
         super().__init__()
 
-        # Assuming the architecture is static, we hardcode the number of blocks
         n_blocks = 5
         if n_blocks != len(decoder_channels):
             raise ValueError(
                 f"Model depth is {n_blocks}, but you provide `decoder_channels` for {len(decoder_channels)} blocks."
             )
 
-        # Remove first skip with same spatial resolution
         encoder_channels = encoder_channels[1:]
-        # Reverse channels to start from head of encoder
+
         encoder_channels = encoder_channels[::-1]
 
         # Computing blocks input and output channels
@@ -52,7 +52,7 @@ class UnetDecoder(nn.Module):
         skip_channels = list(encoder_channels[1:]) + [0]
         out_channels = decoder_channels
 
-        self.center = nn.Identity()  # Assuming CenterBlock is not needed
+        self.center = nn.Identity()  # CenterBlock is not needed
 
         # Combining decoder blocks
         self.blocks = nn.ModuleList([

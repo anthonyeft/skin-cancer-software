@@ -314,6 +314,9 @@ def calculate_color_count(img, mask):
 
     if color_score > 1:
         color_score = 1
+    
+    if color_score < 0:
+        color_score = 0
 
     # Create an image to visualize the color regions in RGB space
     colors_image = np.zeros_like(img)
@@ -378,6 +381,7 @@ def classify_image(image):
 
 def save_cam_image(original_image, cam_image, file_name='cam_visualization.png'):
     # Apply color map directly to uint8 image
+    cam_image = 255 - cam_image
     cam_image = cv2.applyColorMap(cam_image, cv2.COLORMAP_JET)
     cam_image = cv2.resize(cam_image, (original_image.shape[1], original_image.shape[0]))
 
