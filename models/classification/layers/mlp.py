@@ -1,6 +1,4 @@
 """ MLP module w/ dropout and configurable activation layer
-
-Hacked together by / Copyright 2020 Ross Wightman
 """
 from functools import partial
 

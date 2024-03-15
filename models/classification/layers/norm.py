@@ -1,10 +1,3 @@
-""" Normalization layers and wrappers
-
-Norm layer definitions that support fast norm and consistent channel arg order (always first arg).
-
-Hacked together by / Copyright 2022 Ross Wightman
-"""
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

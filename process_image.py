@@ -11,6 +11,7 @@ from skimage import segmentation, graph
 from utils import merge_mean_color, _weight_mean_color, reshape_transform
 import matplotlib.pyplot as plt
 from pytorch_grad_cam import EigenGradCAM
+import cv2
 
 '''
 Initialize the segmentation and classification models and load the weights.
@@ -134,6 +135,7 @@ def calculate_color_asymmetry(image, mask):
     
     return color_h, color_v
 
+
 def calculate_asymmetry(image, mask):
     mask = mask.astype(np.uint8) * 255
 
@@ -229,7 +231,6 @@ def calculate_asymmetry(image, mask):
 
     return points / 2
 
-
 def calculate_border_irregularity(
     image,
     mask,
@@ -255,6 +256,14 @@ def calculate_border_irregularity(
     if convexity < convexity_threshold:
         points += 1
     
+    # use matplotlib to visualize the convex hull over the original mask
+    plt.figure(figsize=(5, 5))
+    plt.imshow(mask, cmap='gray')
+    plt.plot(hull[:, 0, 0], hull[:, 0, 1], 'r', 2)
+    plt.title('Convex Hull')
+    plt.savefig('convex_hull_visualization.png')
+    plt.close()
+    
     # Calculate the amount of detected edges within 5px of the boundary
     image = cv2.bilateralFilter(image, 9, 75, 75)
     edges = cv2.Canny(image, 100, 100)
@@ -262,6 +271,23 @@ def calculate_border_irregularity(
     eroded_mask = cv2.erode(mask, kernel, iterations=1)
     border_mask = cv2.subtract(mask, eroded_mask)
     border_edges = cv2.bitwise_and(edges, edges, mask=border_mask)
+
+    # Plot the original image and border_edges side by side
+    plt.figure(figsize=(10, 5))
+
+    # Plot the original image
+    plt.subplot(1, 2, 1)
+    plt.imshow(image)
+    plt.title('Noise Filtered Image')
+
+    # Plot the border_edges image
+    plt.subplot(1, 2, 2)
+    plt.imshow(border_edges, cmap='gray')
+    plt.title('Border Edges')
+
+    plt.savefig('border_irregularity_visualization.png')
+    plt.close()
+
     edge_count = np.sum(border_edges > 0)
     normalized_edge_score = edge_count / perimeter
 
@@ -414,6 +440,14 @@ def processImage(image_path):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image_resized = cv2.resize(image, (600, 450))
     color_constancy_img = apply_color_constancy_no_gamma(image_resized)
+
+    # Convert the images back to BGR format
+    image_resized_bgr = cv2.cvtColor(image_resized, cv2.COLOR_RGB2BGR)
+    color_constancy_img_bgr = cv2.cvtColor(color_constancy_img, cv2.COLOR_RGB2BGR)
+
+    # Save the original image and the color constancy image
+    cv2.imwrite('original_image.png', image_resized_bgr)
+    cv2.imwrite('color_constancy_image.png', color_constancy_img_bgr)
 
     # Segment the image
     binary_mask, contours, contour_image = segment_image(image_resized)
