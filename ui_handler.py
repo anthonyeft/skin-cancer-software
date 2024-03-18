@@ -27,14 +27,17 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         self.icon_name_sidebar_widget.setHidden(True)
 
         # Sidebar buttons
-        self.dashboard_button.clicked.connect(self.switch_to_dashboard)
-        self.dashboard_logo_button.clicked.connect(self.switch_to_dashboard)
-
-        self.patients_button.clicked.connect(self.switch_to_patients)
-        self.patients_logo_button.clicked.connect(self.switch_to_patients)
-        
+        self.evolution_button.clicked.connect(self.switch_to_evolution)
+        self.evolution_logo_button.clicked.connect(self.switch_to_evolution)
+       
         self.quick_scan_button.clicked.connect(self.switch_to_quick_scan)
         self.quick_scan_logo_button.clicked.connect(self.switch_to_quick_scan)
+
+        # Evolution submission page buttons
+        self.upload_left.clicked.connect(self.openFileDialogLeft)
+        self.upload_right.clicked.connect(self.openFileDialogRight)
+        self.submit_tracking_button.clicked.connect(self.switch_to_evolution_report)
+        self.evolution_tracking_results_back_button.clicked.connect(self.switch_to_evolution_submission)
 
         # Quick scan submission page buttons
         self.choose_file_button.clicked.connect(self.openFileDialog)
@@ -66,20 +69,23 @@ class mainApplication(QMainWindow, Ui_MainWindow):
 
         self.ABCWidgetC = ABCWidget("C", self.C_placeholder_widget)
         self.C_placeholder_widget.layout().addWidget(self.ABCWidgetC)
-
-    def switch_to_dashboard(self):
-        self.main_stacked_widget.setCurrentIndex(0)
-    
-    def switch_to_patients(self):
-        self.main_stacked_widget.setCurrentIndex(1)
     
     def switch_to_quick_scan(self):
-        self.main_stacked_widget.setCurrentIndex(2)
+        self.main_stacked_widget.setCurrentIndex(0)
         self.quick_scan_stacked_widget.setCurrentIndex(0)
+    
+    def switch_to_evolution(self):
+        self.main_stacked_widget.setCurrentIndex(1)
+
+    def switch_to_evolution_report(self):
+        self.evolution_tracking_stacked_widget.setCurrentIndex(1)
+    
+    def switch_to_evolution_submission(self):
+        self.evolution_tracking_stacked_widget.setCurrentIndex(0)
     
     def openFileDialog(self):
         options = QFileDialog.Options()
-        initialDir = "D:\\test_images"  # Replace with your desired path
+        initialDir = "D:\\test_images"
         fileName, _ = QFileDialog.getOpenFileName(self, "Open Image", initialDir, "Image Files (*.jpg *.png)", options=options)
         if fileName:
             try:
@@ -90,6 +96,36 @@ class mainApplication(QMainWindow, Ui_MainWindow):
                 self.image_display_label.setPixmap(pixmap.scaled(self.image_display_label.width(), self.image_display_label.height(), Qt.KeepAspectRatio))
             except Exception as e:
                 self.image_display_label.setText(str(e))
+                self.currentImagePath = None
+    
+    def openFileDialogLeft(self):
+        options = QFileDialog.Options()
+        initialDir = "D:\\test_images"
+        fileName, _ = QFileDialog.getOpenFileName(self, "Open Image", initialDir, "Image Files (*.jpg *.png)", options=options)
+        if fileName:
+            try:
+                if not fileName.lower().endswith(('.png', '.jpg', '.jpeg')):
+                    raise ValueError("File format not supported. Please select a JPG or PNG file.")
+                self.currentImagePath = fileName  # Set the current image path
+                pixmap = QPixmap(fileName)
+                self.image_display_label.setPixmap(pixmap.scaled(self.image_display_label.width(), self.image_display_label.height(), Qt.KeepAspectRatio))
+            except Exception as e:
+                self.image_display_label.setText(str(e))
+                self.currentImagePath = None
+    
+    def openFileDialogRight(self):
+        options = QFileDialog.Options()
+        initialDir = "D:\\test_images"
+        fileName, _ = QFileDialog.getOpenFileName(self, "Open Image", initialDir, "Image Files (*.jpg *.png)", options=options)
+        if fileName:
+            try:
+                if not fileName.lower().endswith(('.png', '.jpg', '.jpeg')):
+                    raise ValueError("File format not supported. Please select a JPG or PNG file.")
+                self.currentImagePath = fileName  # Set the current image path
+                pixmap = QPixmap(fileName)
+                self._label.setPixmap(pixmap.scaled(self.image_display_label.width(), self.image_display_label.height(), Qt.KeepAspectRatio))
+            except Exception as e:
+                self._label.setText(str(e))
                 self.currentImagePath = None
     
     def switchToLoading(self):
