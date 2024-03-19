@@ -17,6 +17,9 @@
    <string notr="true">background-color: rgb(248, 249, 250);</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="styleSheet">
+    <string notr="true">font-size: 20pt;</string>
+   </property>
    <layout class="QGridLayout" name="gridLayout_2">
     <property name="leftMargin">
      <number>0</number>
@@ -60,9 +63,7 @@ QPushButton:checked{
         <widget class="QLabel" name="empty_spacer_label">
          <property name="font">
           <font>
-           <pointsize>12</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
+           <pointsize>20</pointsize>
           </font>
          </property>
          <property name="text">
@@ -256,7 +257,7 @@ QPushButton:checked{
     color: white;
     padding: 6px 24px;
     text-align: center;
-    font-size: 10pt;
+    font-size: 20pt;
     border-radius: 8px;
 }
 QPushButton:hover {
@@ -327,13 +328,13 @@ QProgressBar::chunk {
                  </property>
                  <property name="font">
                   <font>
-                   <pointsize>20</pointsize>
+                   <pointsize>40</pointsize>
                    <weight>75</weight>
                    <bold>true</bold>
                   </font>
                  </property>
                  <property name="styleSheet">
-                  <string notr="true">font-size: 20pt;
+                  <string notr="true">font-size: 40pt;
 color: #333333;
 font-weight:bold;</string>
                  </property>
@@ -417,7 +418,7 @@ font-weight:bold;</string>
                     </property>
                     <property name="font">
                      <font>
-                      <pointsize>8</pointsize>
+                      <pointsize>20</pointsize>
                       <weight>75</weight>
                       <bold>true</bold>
                      </font>
@@ -427,7 +428,7 @@ font-weight:bold;</string>
 color: #3E5463;
 background-color: #F2F5F7;
 font-weight: bold;
-font-size: 8pt;</string>
+font-size: 20pt;</string>
                     </property>
                     <property name="text">
                      <string>Image will be displayed here</string>
@@ -553,6 +554,11 @@ font-size: 8pt;</string>
                       <height>80</height>
                      </size>
                     </property>
+                    <property name="font">
+                     <font>
+                      <pointsize>20</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>Submit</string>
                     </property>
@@ -593,6 +599,9 @@ font-size: 8pt;</string>
               </layout>
              </widget>
              <widget class="QWidget" name="loading_page">
+              <property name="styleSheet">
+               <string notr="true">font-size:30pt;</string>
+              </property>
               <layout class="QVBoxLayout" name="verticalLayout_7">
                <property name="spacing">
                 <number>30</number>
@@ -626,7 +635,7 @@ font-size: 8pt;</string>
                 <widget class="QLabel" name="loading_label">
                  <property name="font">
                   <font>
-                   <pointsize>16</pointsize>
+                   <pointsize>30</pointsize>
                   </font>
                  </property>
                  <property name="text">
@@ -648,12 +657,12 @@ font-size: 8pt;</string>
                  <property name="minimumSize">
                   <size>
                    <width>1000</width>
-                   <height>50</height>
+                   <height>60</height>
                   </size>
                  </property>
                  <property name="font">
                   <font>
-                   <pointsize>14</pointsize>
+                   <pointsize>30</pointsize>
                   </font>
                  </property>
                  <property name="value">
@@ -774,6 +783,7 @@ font-size: 8pt;</string>
                         </property>
                         <property name="font">
                          <font>
+                          <pointsize>20</pointsize>
                           <weight>75</weight>
                           <bold>true</bold>
                          </font>
@@ -815,7 +825,7 @@ font-weight: bold;</string>
                     <widget class="QWidget" name="original_image_view_bottom_panel_widget" native="true">
                      <property name="font">
                       <font>
-                       <pointsize>8</pointsize>
+                       <pointsize>20</pointsize>
                       </font>
                      </property>
                      <property name="styleSheet">
@@ -891,7 +901,7 @@ font-weight: bold;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <pointsize>10</pointsize>
+                          <pointsize>20</pointsize>
                          </font>
                         </property>
                         <property name="styleSheet">
@@ -1042,6 +1052,7 @@ background-color: rgb(232, 235, 237);</string>
                         </property>
                         <property name="font">
                          <font>
+                          <pointsize>20</pointsize>
                           <weight>75</weight>
                           <bold>true</bold>
                          </font>
@@ -1083,7 +1094,7 @@ font-weight: bold;</string>
                     <widget class="QWidget" name="colour_constancy_image_view_bottom_panel_widget" native="true">
                      <property name="font">
                       <font>
-                       <pointsize>8</pointsize>
+                       <pointsize>20</pointsize>
                       </font>
                      </property>
                      <property name="styleSheet">
@@ -1159,7 +1170,7 @@ font-weight: bold;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <pointsize>10</pointsize>
+                          <pointsize>20</pointsize>
                          </font>
                         </property>
                         <property name="styleSheet">
@@ -1310,6 +1321,7 @@ background-color: rgb(232, 235, 237);</string>
                         </property>
                         <property name="font">
                          <font>
+                          <pointsize>20</pointsize>
                           <weight>75</weight>
                           <bold>true</bold>
                          </font>
@@ -1351,7 +1363,7 @@ font-weight: bold;</string>
                     <widget class="QWidget" name="segmented_image_view_bottom_panel_widget" native="true">
                      <property name="font">
                       <font>
-                       <pointsize>8</pointsize>
+                       <pointsize>20</pointsize>
                       </font>
                      </property>
                      <property name="styleSheet">
@@ -1427,7 +1439,7 @@ font-weight: bold;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <pointsize>10</pointsize>
+                          <pointsize>20</pointsize>
                          </font>
                         </property>
                         <property name="styleSheet">
@@ -1578,6 +1590,7 @@ background-color: rgb(232, 235, 237);</string>
                         </property>
                         <property name="font">
                          <font>
+                          <pointsize>20</pointsize>
                           <weight>75</weight>
                           <bold>true</bold>
                          </font>
@@ -1619,7 +1632,7 @@ font-weight: bold;</string>
                     <widget class="QWidget" name="cam_image_view_bottom_panel_widget" native="true">
                      <property name="font">
                       <font>
-                       <pointsize>8</pointsize>
+                       <pointsize>20</pointsize>
                       </font>
                      </property>
                      <property name="styleSheet">
@@ -1695,7 +1708,7 @@ font-weight: bold;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <pointsize>10</pointsize>
+                          <pointsize>20</pointsize>
                          </font>
                         </property>
                         <property name="styleSheet">
@@ -1846,6 +1859,7 @@ background-color: rgb(232, 235, 237);</string>
                         </property>
                         <property name="font">
                          <font>
+                          <pointsize>20</pointsize>
                           <weight>75</weight>
                           <bold>true</bold>
                          </font>
@@ -1887,7 +1901,7 @@ font-weight: bold;</string>
                     <widget class="QWidget" name="colors_image_view_bottom_panel_widget" native="true">
                      <property name="font">
                       <font>
-                       <pointsize>8</pointsize>
+                       <pointsize>20</pointsize>
                       </font>
                      </property>
                      <property name="styleSheet">
@@ -1963,7 +1977,7 @@ font-weight: bold;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <pointsize>10</pointsize>
+                          <pointsize>20</pointsize>
                          </font>
                         </property>
                         <property name="styleSheet">
@@ -2197,8 +2211,11 @@ background-color: rgb(232, 235, 237);</string>
                    <widget class="QLabel" name="diagnosis_label">
                     <property name="font">
                      <font>
-                      <pointsize>18</pointsize>
+                      <pointsize>40</pointsize>
                      </font>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font-size:40pt</string>
                     </property>
                     <property name="text">
                      <string>Diagnosis: </string>
@@ -2240,13 +2257,13 @@ background-color: rgb(232, 235, 237);</string>
                       <widget class="QPushButton" name="back_to_scan_button">
                        <property name="minimumSize">
                         <size>
-                         <width>140</width>
-                         <height>0</height>
+                         <width>200</width>
+                         <height>60</height>
                         </size>
                        </property>
                        <property name="font">
                         <font>
-                         <pointsize>10</pointsize>
+                         <pointsize>20</pointsize>
                         </font>
                        </property>
                        <property name="text">
@@ -2274,7 +2291,7 @@ background-color: rgb(232, 235, 237);</string>
     color: white;
     padding: 6px 24px;
     text-align: center;
-    font-size: 10pt;
+    font-size: 20pt;
     border-radius: 8px;
 }
 QPushButton:hover {
@@ -2308,7 +2325,7 @@ QPushButton:pressed {
                 <number>0</number>
                </property>
                <property name="topMargin">
-                <number>0</number>
+                <number>10</number>
                </property>
                <property name="rightMargin">
                 <number>0</number>
@@ -2316,6 +2333,28 @@ QPushButton:pressed {
                <property name="bottomMargin">
                 <number>0</number>
                </property>
+               <item>
+                <widget class="QLabel" name="label">
+                 <property name="font">
+                  <font>
+                   <pointsize>40</pointsize>
+                   <weight>75</weight>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">font-size: 40pt;
+color: #333333;
+font-weight:bold;</string>
+                 </property>
+                 <property name="text">
+                  <string>Evolution Tracker</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
                <item>
                 <spacer name="verticalSpacer_8">
                  <property name="orientation">
@@ -2338,6 +2377,34 @@ QPushButton:pressed {
                   <enum>QFrame::Raised</enum>
                  </property>
                  <layout class="QHBoxLayout" name="horizontalLayout_16">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <spacer name="horizontalSpacer_18">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                   <item>
                    <widget class="QLabel" name="left_image_label">
                     <property name="sizePolicy">
@@ -2360,7 +2427,7 @@ QPushButton:pressed {
                     </property>
                     <property name="font">
                      <font>
-                      <pointsize>10</pointsize>
+                      <pointsize>20</pointsize>
                       <weight>75</weight>
                       <bold>true</bold>
                      </font>
@@ -2378,6 +2445,19 @@ font-weight: bold;</string>
                      <set>Qt::AlignCenter</set>
                     </property>
                    </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_14">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
                   </item>
                   <item>
                    <widget class="QLabel" name="right_image_label">
@@ -2401,7 +2481,7 @@ font-weight: bold;</string>
                     </property>
                     <property name="font">
                      <font>
-                      <pointsize>10</pointsize>
+                      <pointsize>20</pointsize>
                       <weight>75</weight>
                       <bold>true</bold>
                      </font>
@@ -2420,6 +2500,19 @@ font-weight: bold;</string>
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <spacer name="horizontalSpacer_19">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -2432,10 +2525,28 @@ font-weight: bold;</string>
                   <enum>QFrame::Raised</enum>
                  </property>
                  <layout class="QHBoxLayout" name="horizontalLayout_17">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>10</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>10</number>
+                  </property>
                   <item>
-                   <spacer name="horizontalSpacer_17">
+                   <spacer name="horizontalSpacer_21">
                     <property name="orientation">
                      <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Preferred</enum>
                     </property>
                     <property name="sizeHint" stdset="0">
                      <size>
@@ -2453,19 +2564,28 @@ font-weight: bold;</string>
                       <height>60</height>
                      </size>
                     </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>200</width>
+                      <height>60</height>
+                     </size>
+                    </property>
                     <property name="text">
                      <string>Upload</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <spacer name="horizontalSpacer_14">
+                   <spacer name="horizontalSpacer_17">
                     <property name="orientation">
                      <enum>Qt::Horizontal</enum>
                     </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Preferred</enum>
+                    </property>
                     <property name="sizeHint" stdset="0">
                      <size>
-                      <width>500</width>
+                      <width>450</width>
                       <height>20</height>
                      </size>
                     </property>
@@ -2479,9 +2599,15 @@ font-weight: bold;</string>
                       <height>60</height>
                      </size>
                     </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>200</width>
+                      <height>60</height>
+                     </size>
+                    </property>
                     <property name="font">
                      <font>
-                      <pointsize>10</pointsize>
+                      <pointsize>20</pointsize>
                      </font>
                     </property>
                     <property name="text">
@@ -2490,9 +2616,12 @@ font-weight: bold;</string>
                    </widget>
                   </item>
                   <item>
-                   <spacer name="horizontalSpacer_18">
+                   <spacer name="horizontalSpacer_20">
                     <property name="orientation">
                      <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Preferred</enum>
                     </property>
                     <property name="sizeHint" stdset="0">
                      <size>
@@ -2642,7 +2771,7 @@ font-weight: bold;</string>
                     </property>
                     <property name="font">
                      <font>
-                      <pointsize>10</pointsize>
+                      <pointsize>20</pointsize>
                       <weight>75</weight>
                       <bold>true</bold>
                      </font>
@@ -2783,9 +2912,7 @@ QPushButton:checked{
         <widget class="QLabel" name="sidebar_label">
          <property name="font">
           <font>
-           <pointsize>12</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
+           <pointsize>20</pointsize>
           </font>
          </property>
          <property name="text">
@@ -2817,7 +2944,7 @@ QPushButton:checked{
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>20</pointsize>
             </font>
            </property>
            <property name="text">
@@ -2858,7 +2985,7 @@ QPushButton:checked{
            </property>
            <property name="font">
             <font>
-             <pointsize>10</pointsize>
+             <pointsize>20</pointsize>
             </font>
            </property>
            <property name="text">
@@ -2914,7 +3041,7 @@ QPushButton:checked{
          </property>
          <property name="font">
           <font>
-           <pointsize>10</pointsize>
+           <pointsize>20</pointsize>
           </font>
          </property>
          <property name="text">

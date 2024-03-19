@@ -9,6 +9,6 @@ warnings.filterwarnings("ignore")
 
 app = QApplication(sys.argv)
 window = mainApplication()
-window.show()
+window.showFullScreen()
 
 app.exec_()
