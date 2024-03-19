@@ -390,10 +390,6 @@ def processImage(image_path):
     image_resized = cv2.resize(image, (600, 450))
     color_constancy_img = apply_color_constancy_no_gamma(image_resized)
 
-    # Convert the images back to BGR format
-    image_resized_bgr = cv2.cvtColor(image_resized, cv2.COLOR_RGB2BGR)
-    color_constancy_img_bgr = cv2.cvtColor(color_constancy_img, cv2.COLOR_RGB2BGR)
-
     # Segment the image
     binary_mask, contours, contour_image = segment_image(image_resized)
 
@@ -401,9 +397,6 @@ def processImage(image_path):
     asymmetry_score, border_irregularity_score, color_score, colors_image = calculate_abc_score(binary_mask, contours[0], color_constancy_img)
 
     # Classify the image
-    diagnosis, cam_image = classify_image(image_resized)
-
-    # Classify the image and get the CAM
     diagnosis, cam_image = classify_image(image_resized)
 
     # Save the CAM image
