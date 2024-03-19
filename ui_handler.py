@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QMainWindow, QFileDialog
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal, QObject
 
-from process_image import processImage
+from process_image import processImage, processLesionEvolution
 from utils import convertArrayToPixmap, ABCWidget
 
 class DiagnosisWorker(QObject):
@@ -69,6 +69,11 @@ class mainApplication(QMainWindow, Ui_MainWindow):
 
         self.ABCWidgetC = ABCWidget("C", self.C_placeholder_widget)
         self.C_placeholder_widget.layout().addWidget(self.ABCWidgetC)
+
+        # Empty image paths
+        self.currentImagePath = None
+        self.leftImagePath = None
+        self.rightImagePath = None
     
     def switch_to_quick_scan(self):
         self.main_stacked_widget.setCurrentIndex(0)
@@ -78,7 +83,10 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         self.main_stacked_widget.setCurrentIndex(1)
 
     def switch_to_evolution_report(self):
-        self.evolution_tracking_stacked_widget.setCurrentIndex(1)
+        if self.leftImagePath is not None and self.rightImagePath is not None:
+            self.evolution_mask = processLesionEvolution(self.leftImagePath, self.rightImagePath)
+            self.segmentation_comparison_image_label.setPixmap(convertArrayToPixmap(self.evolution_mask))
+            self.evolution_tracking_stacked_widget.setCurrentIndex(1)
     
     def switch_to_evolution_submission(self):
         self.evolution_tracking_stacked_widget.setCurrentIndex(0)
@@ -93,7 +101,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
                     raise ValueError("File format not supported. Please select a JPG or PNG file.")
                 self.currentImagePath = fileName  # Set the current image path
                 pixmap = QPixmap(fileName)
-                self.image_display_label.setPixmap(pixmap.scaled(self.image_display_label.width(), self.image_display_label.height(), Qt.KeepAspectRatio))
+                self.image_display_label.setPixmap(pixmap.scaled(self.image_display_label.width(), self.image_display_label.height()))
             except Exception as e:
                 self.image_display_label.setText(str(e))
                 self.currentImagePath = None
@@ -106,12 +114,12 @@ class mainApplication(QMainWindow, Ui_MainWindow):
             try:
                 if not fileName.lower().endswith(('.png', '.jpg', '.jpeg')):
                     raise ValueError("File format not supported. Please select a JPG or PNG file.")
-                self.currentImagePath = fileName  # Set the current image path
+                self.leftImagePath = fileName  # Set the current image path
                 pixmap = QPixmap(fileName)
-                self.image_display_label.setPixmap(pixmap.scaled(self.image_display_label.width(), self.image_display_label.height(), Qt.KeepAspectRatio))
+                self.left_image_label.setPixmap(pixmap.scaled(self.image_display_label.width(), self.image_display_label.height()))
             except Exception as e:
-                self.image_display_label.setText(str(e))
-                self.currentImagePath = None
+                self.left_image_label.setText(str(e))
+                self.leftImagePath = None
     
     def openFileDialogRight(self):
         options = QFileDialog.Options()
@@ -121,12 +129,12 @@ class mainApplication(QMainWindow, Ui_MainWindow):
             try:
                 if not fileName.lower().endswith(('.png', '.jpg', '.jpeg')):
                     raise ValueError("File format not supported. Please select a JPG or PNG file.")
-                self.currentImagePath = fileName  # Set the current image path
+                self.rightImagePath = fileName  # Set the current image path
                 pixmap = QPixmap(fileName)
-                self._label.setPixmap(pixmap.scaled(self.image_display_label.width(), self.image_display_label.height(), Qt.KeepAspectRatio))
+                self.right_image_label.setPixmap(pixmap.scaled(self.image_display_label.width(), self.image_display_label.height()))
             except Exception as e:
-                self._label.setText(str(e))
-                self.currentImagePath = None
+                self.right_image_label.setText(str(e))
+                self.rightImagePath = None
     
     def switchToLoading(self):
         if self.currentImagePath is not None:

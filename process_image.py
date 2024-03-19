@@ -9,7 +9,6 @@ import numpy as np
 from skimage import segmentation, graph
 
 from utils import merge_mean_color, _weight_mean_color, reshape_transform
-import matplotlib.pyplot as plt
 from pytorch_grad_cam import EigenGradCAM
 import cv2
 
@@ -201,25 +200,6 @@ def calculate_asymmetry(image, mask):
         shape_h = 1
     if left_right_symmetry / (np.sum(rotated_mask) + 1e-6) > asymmetry_threshold:
         shape_v = 1
-    
-    # Visualization
-    plt.figure(figsize=(10, 5))
-
-    # Plot the original mask with centroid
-    plt.subplot(1, 2, 1)
-    plt.imshow(mask, cmap='gray')
-    plt.scatter(cx, cy, c='red', s=10)  # centroid
-    plt.title('Original Mask with Centroid')
-
-    # Plot the rotated mask with symmetry lines
-    plt.subplot(1, 2, 2)
-    plt.imshow(rotated_mask, cmap='gray')
-    plt.axhline(vertical_split, color='red', linestyle='--')
-    plt.axvline(horizontal_split, color='red', linestyle='--')
-    plt.title('Rotated Mask with Symmetry Lines')
-
-    plt.savefig('asymmetry_visualization.png')
-    plt.close()
 
     color_h, color_v = calculate_color_asymmetry(rotated_image, rotated_mask)
 
@@ -256,14 +236,6 @@ def calculate_border_irregularity(
     if convexity < convexity_threshold:
         points += 1
     
-    # use matplotlib to visualize the convex hull over the original mask
-    plt.figure(figsize=(5, 5))
-    plt.imshow(mask, cmap='gray')
-    plt.plot(hull[:, 0, 0], hull[:, 0, 1], 'r', 2)
-    plt.title('Convex Hull')
-    plt.savefig('convex_hull_visualization.png')
-    plt.close()
-    
     # Calculate the amount of detected edges within 5px of the boundary
     image = cv2.bilateralFilter(image, 9, 75, 75)
     edges = cv2.Canny(image, 100, 100)
@@ -271,22 +243,6 @@ def calculate_border_irregularity(
     eroded_mask = cv2.erode(mask, kernel, iterations=1)
     border_mask = cv2.subtract(mask, eroded_mask)
     border_edges = cv2.bitwise_and(edges, edges, mask=border_mask)
-
-    # Plot the original image and border_edges side by side
-    plt.figure(figsize=(10, 5))
-
-    # Plot the original image
-    plt.subplot(1, 2, 1)
-    plt.imshow(image)
-    plt.title('Noise Filtered Image')
-
-    # Plot the border_edges image
-    plt.subplot(1, 2, 2)
-    plt.imshow(border_edges, cmap='gray')
-    plt.title('Border Edges')
-
-    plt.savefig('border_irregularity_visualization.png')
-    plt.close()
 
     edge_count = np.sum(border_edges > 0)
     normalized_edge_score = edge_count / perimeter
@@ -405,7 +361,7 @@ def classify_image(image):
 
     return diagnosis_name, visualization
 
-def save_cam_image(original_image, cam_image, file_name='cam_visualization.png'):
+def save_cam_image(original_image, cam_image):
     # Apply color map directly to uint8 image
     cam_image = 255 - cam_image
     cam_image = cv2.applyColorMap(cam_image, cv2.COLORMAP_JET)
@@ -420,13 +376,6 @@ def save_cam_image(original_image, cam_image, file_name='cam_visualization.png')
 
     # Convert back to uint8 for displaying and saving
     overlaid_image_uint8 = np.uint8(255 * overlaid_image)
-
-    # Plot and save the figure
-    plt.figure(figsize=(10, 10))
-    plt.imshow(overlaid_image_uint8)
-    plt.axis('off')
-    plt.savefig(file_name)
-    plt.close()
 
     return overlaid_image_uint8
 
@@ -445,10 +394,6 @@ def processImage(image_path):
     image_resized_bgr = cv2.cvtColor(image_resized, cv2.COLOR_RGB2BGR)
     color_constancy_img_bgr = cv2.cvtColor(color_constancy_img, cv2.COLOR_RGB2BGR)
 
-    # Save the original image and the color constancy image
-    cv2.imwrite('original_image.png', image_resized_bgr)
-    cv2.imwrite('color_constancy_image.png', color_constancy_img_bgr)
-
     # Segment the image
     binary_mask, contours, contour_image = segment_image(image_resized)
 
@@ -465,3 +410,87 @@ def processImage(image_path):
     gradcam_image = save_cam_image(color_constancy_img, cam_image)
 
     return diagnosis, color_constancy_img, contour_image, gradcam_image, colors_image, asymmetry_score, border_irregularity_score, color_score
+
+"""
+Final function to process lesion evolution
+"""
+
+def alignMask(mask):
+    mask = mask.astype(np.uint8) * 255
+
+    # Calculate image moments
+    moments = cv2.moments(mask)
+
+    if moments['m00'] == 0:
+        return 0  # Return early if mask is empty
+
+    # Calculate centroid (center of mass)
+    cx = int(moments['m10'] / moments['m00'])
+    cy = int(moments['m01'] / moments['m00'])
+
+    # Calculate central moments for covariance matrix
+    mu11 = moments['mu11']
+    mu20 = moments['mu20']
+    mu02 = moments['mu02']
+
+    # Calculate covariance matrix and its eigenvectors
+    covariance_matrix = np.array([[mu20, mu11], [mu11, mu02]])
+    eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
+
+    # Calculate angle of rotation (in degrees)
+    angle = -np.arctan2(eigenvectors[0, 1], eigenvectors[0, 0]) * (180 / np.pi)
+
+    # Center of the image
+    image_center = (mask.shape[1] // 2, mask.shape[0] // 2)
+
+    # Rotation matrix (includes translation to re-center the image)
+    rotation_matrix = cv2.getRotationMatrix2D((cx, cy), angle, 1.0)
+    tx = image_center[0] - cx
+    ty = image_center[1] - cy
+    rotation_matrix[0, 2] += tx  # Translation in x
+    rotation_matrix[1, 2] += ty  # Translation in y
+
+    # Rotate and translate mask
+    rotated_mask = cv2.warpAffine(mask, rotation_matrix, (mask.shape[1], mask.shape[0]))
+
+    # convert mask back 0-1 range and binary
+    rotated_mask = rotated_mask / 255
+    rotated_mask = np.where(rotated_mask > 0.5, 1, 0)
+
+    return rotated_mask
+
+def processLesionEvolution(image_path1, image_path2):
+    image1, image2 = cv2.imread(image_path1), cv2.imread(image_path2)
+    image1, image2 = cv2.cvtColor(image1, cv2.COLOR_BGR2RGB), cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
+    image1, image2 = cv2.resize(image1, (600, 450)), cv2.resize(image2, (600, 450))
+
+    color_constancy_img1, color_constancy_img2 = apply_color_constancy(image1), apply_color_constancy(image2)
+
+    # Apply test_transform_segmentation to the image for segmentation
+    transform = A.Compose([
+        A.Resize(224, 224),
+        A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ToTensorV2()
+    ])
+    transformed1, transformed2 = transform(image=color_constancy_img1), transform(image=color_constancy_img2)
+    input_tensor1, input_tensor2 = transformed1['image'].unsqueeze(0), transformed2['image'].unsqueeze(0)
+
+    # Run segmentation model
+    with torch.no_grad():
+        mask1, mask2 = segmentation_model(input_tensor1).squeeze().cpu().numpy(), segmentation_model(input_tensor2).squeeze().cpu().numpy()
+    
+    mask1, mask2 = cv2.resize(mask1, (image1.shape[1], image1.shape[0])), cv2.resize(mask2, (image2.shape[1], image2.shape[0]))  # Resize to original image size
+
+    # Threshold the masks to get binary images
+    _, binary_mask1 = cv2.threshold(mask1, 0.5, 1, cv2.THRESH_BINARY)
+    _, binary_mask2 = cv2.threshold(mask2, 0.5, 1, cv2.THRESH_BINARY)
+
+    # Align the masks
+    aligned_mask1, aligned_mask2 = alignMask(binary_mask1), alignMask(binary_mask2)
+
+    # Overlay masks to visualize the difference
+    overlay_mask = np.zeros_like(image1)
+    overlay_mask[aligned_mask2 == 1] = [255, 0, 0]
+    overlay_mask[aligned_mask1 == 1] = [255, 255, 255]
+
+    return overlay_mask

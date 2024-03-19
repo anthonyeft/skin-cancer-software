@@ -2354,8 +2354,8 @@ QPushButton:pressed {
                     </property>
                     <property name="maximumSize">
                      <size>
-                      <width>1200</width>
-                      <height>900</height>
+                      <width>600</width>
+                      <height>450</height>
                      </size>
                     </property>
                     <property name="font">
@@ -2395,8 +2395,8 @@ font-weight: bold;</string>
                     </property>
                     <property name="maximumSize">
                      <size>
-                      <width>1200</width>
-                      <height>900</height>
+                      <width>600</width>
+                      <height>450</height>
                      </size>
                     </property>
                     <property name="font">
@@ -2852,7 +2852,7 @@ QPushButton:checked{
            </property>
            <property name="minimumSize">
             <size>
-             <width>340</width>
+             <width>400</width>
              <height>100</height>
             </size>
            </property>
