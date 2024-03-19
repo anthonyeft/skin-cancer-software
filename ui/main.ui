@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1920</width>
+    <width>1945</width>
     <height>1080</height>
    </rect>
   </property>
@@ -777,8 +777,8 @@ font-size: 20pt;</string>
                         </property>
                         <property name="maximumSize">
                          <size>
-                          <width>1200</width>
-                          <height>900</height>
+                          <width>600</width>
+                          <height>450</height>
                          </size>
                         </property>
                         <property name="font">
@@ -1046,8 +1046,8 @@ background-color: rgb(232, 235, 237);</string>
                         </property>
                         <property name="maximumSize">
                          <size>
-                          <width>1200</width>
-                          <height>900</height>
+                          <width>600</width>
+                          <height>450</height>
                          </size>
                         </property>
                         <property name="font">
@@ -1315,8 +1315,8 @@ background-color: rgb(232, 235, 237);</string>
                         </property>
                         <property name="maximumSize">
                          <size>
-                          <width>1200</width>
-                          <height>900</height>
+                          <width>600</width>
+                          <height>450</height>
                          </size>
                         </property>
                         <property name="font">
@@ -1584,8 +1584,8 @@ background-color: rgb(232, 235, 237);</string>
                         </property>
                         <property name="maximumSize">
                          <size>
-                          <width>1200</width>
-                          <height>900</height>
+                          <width>600</width>
+                          <height>450</height>
                          </size>
                         </property>
                         <property name="font">
@@ -1853,8 +1853,8 @@ background-color: rgb(232, 235, 237);</string>
                         </property>
                         <property name="maximumSize">
                          <size>
-                          <width>1200</width>
-                          <height>900</height>
+                          <width>600</width>
+                          <height>450</height>
                          </size>
                         </property>
                         <property name="font">
