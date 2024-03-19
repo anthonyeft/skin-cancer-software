@@ -143,7 +143,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
             # Setup the progress bar
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.updateProgressBar)
-            self.timer.start(135)
+            self.timer.start(150)
             self.progress = 0
 
             # Setup and start the diagnosis thread
