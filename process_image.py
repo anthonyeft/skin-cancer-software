@@ -32,7 +32,7 @@ cam = EigenGradCAM(model=classification_model, target_layers=target_layers, resh
 diagnosis_mapping = {
     0: "Melanoma Cancer",
     1: "Benign Melanoctyic Nevi",
-    2: "Carcinoma Cancer (Basal Cell or Squamous Cell)",
+    2: "Non-Melanoma Skin Cancer",
     3: "Actinic Keratosis Pre-Cancer",
     4: "Benign Keratosis",
     5: "Benign Dermatofibroma",
