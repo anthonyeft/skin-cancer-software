@@ -2091,7 +2091,7 @@ background-color: rgb(232, 235, 237);</string>
                   <item>
                    <widget class="QFrame" name="ABC_labels_frame">
                     <property name="styleSheet">
-                     <string notr="true"/>
+                     <string notr="true">font-size:20pt;</string>
                     </property>
                     <property name="frameShape">
                      <enum>QFrame::StyledPanel</enum>
@@ -2336,8 +2336,8 @@ background-color: rgb(232, 235, 237);</string>
                     </property>
                     <property name="maximumSize">
                      <size>
-                      <width>690</width>
-                      <height>412</height>
+                      <width>100000</width>
+                      <height>100000</height>
                      </size>
                     </property>
                     <property name="font">
@@ -2719,7 +2719,7 @@ font-weight: bold;</string>
                     </property>
                     <property name="sizeHint" stdset="0">
                      <size>
-                      <width>40</width>
+                      <width>400</width>
                       <height>20</height>
                      </size>
                     </property>
