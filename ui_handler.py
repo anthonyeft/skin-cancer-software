@@ -93,7 +93,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
     
     def openFileDialog(self):
         options = QFileDialog.Options()
-        initialDir = "D:\\test_images"
+        initialDir = "C:\\test_images"
         fileName, _ = QFileDialog.getOpenFileName(self, "Open Image", initialDir, "Image Files (*.jpg *.png)", options=options)
         if fileName:
             try:
@@ -108,7 +108,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
     
     def openFileDialogLeft(self):
         options = QFileDialog.Options()
-        initialDir = "D:\\test_images"
+        initialDir = "C:\\test_images"
         fileName, _ = QFileDialog.getOpenFileName(self, "Open Image", initialDir, "Image Files (*.jpg *.png)", options=options)
         if fileName:
             try:
@@ -123,7 +123,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
     
     def openFileDialogRight(self):
         options = QFileDialog.Options()
-        initialDir = "D:\\test_images"
+        initialDir = "C:\\test_images"
         fileName, _ = QFileDialog.getOpenFileName(self, "Open Image", initialDir, "Image Files (*.jpg *.png)", options=options)
         if fileName:
             try:
@@ -143,7 +143,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
             # Setup the progress bar
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.updateProgressBar)
-            self.timer.start(150)
+            self.timer.start(180)
             self.progress = 0
 
             # Setup and start the diagnosis thread
