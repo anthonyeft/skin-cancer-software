@@ -2091,7 +2091,7 @@ background-color: rgb(232, 235, 237);</string>
                   <item>
                    <widget class="QFrame" name="ABC_labels_frame">
                     <property name="styleSheet">
-                     <string notr="true">font-size:12pt;</string>
+                     <string notr="true">font-size:16pt;</string>
                     </property>
                     <property name="frameShape">
                      <enum>QFrame::StyledPanel</enum>
@@ -2117,9 +2117,15 @@ background-color: rgb(232, 235, 237);</string>
                      </property>
                      <item>
                       <widget class="QLabel" name="asymmetry_label">
+                       <property name="maximumSize">
+                        <size>
+                         <width>230</width>
+                         <height>16777215</height>
+                        </size>
+                       </property>
                        <property name="font">
                         <font>
-                         <pointsize>12</pointsize>
+                         <pointsize>16</pointsize>
                         </font>
                        </property>
                        <property name="text">
@@ -2132,9 +2138,15 @@ background-color: rgb(232, 235, 237);</string>
                      </item>
                      <item>
                       <widget class="QLabel" name="border_label">
+                       <property name="maximumSize">
+                        <size>
+                         <width>230</width>
+                         <height>230</height>
+                        </size>
+                       </property>
                        <property name="font">
                         <font>
-                         <pointsize>12</pointsize>
+                         <pointsize>16</pointsize>
                         </font>
                        </property>
                        <property name="text">
@@ -2147,9 +2159,15 @@ background-color: rgb(232, 235, 237);</string>
                      </item>
                      <item>
                       <widget class="QLabel" name="colour_label">
+                       <property name="maximumSize">
+                        <size>
+                         <width>230</width>
+                         <height>16777215</height>
+                        </size>
+                       </property>
                        <property name="font">
                         <font>
-                         <pointsize>12</pointsize>
+                         <pointsize>16</pointsize>
                         </font>
                        </property>
                        <property name="text">

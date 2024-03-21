@@ -187,8 +187,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
 
         # Display the original image
         original_image_pixmap = QPixmap(self.currentImagePath)
-        original_image_pixmap_scaled = original_image_pixmap.scaled(600, 450, Qt.IgnoreAspectRatio)
-        original_image_pixmap_scaled = original_image_pixmap.scaled(self.original_image_label.width(), self.original_image_label.height(), Qt.KeepAspectRatio)
+        original_image_pixmap_scaled = original_image_pixmap.scaled(self.original_image_label.width(), self.original_image_label.height())
         self.original_image_label.setPixmap(original_image_pixmap_scaled)
         self.original_image_label.setFixedWidth(original_image_pixmap_scaled.width())
 
