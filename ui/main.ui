@@ -2091,7 +2091,7 @@ background-color: rgb(232, 235, 237);</string>
                   <item>
                    <widget class="QFrame" name="ABC_labels_frame">
                     <property name="styleSheet">
-                     <string notr="true">font-size:16pt;</string>
+                     <string notr="true"/>
                     </property>
                     <property name="frameShape">
                      <enum>QFrame::StyledPanel</enum>
@@ -2125,7 +2125,7 @@ background-color: rgb(232, 235, 237);</string>
                        </property>
                        <property name="font">
                         <font>
-                         <pointsize>16</pointsize>
+                         <pointsize>20</pointsize>
                         </font>
                        </property>
                        <property name="text">
@@ -2146,7 +2146,7 @@ background-color: rgb(232, 235, 237);</string>
                        </property>
                        <property name="font">
                         <font>
-                         <pointsize>16</pointsize>
+                         <pointsize>20</pointsize>
                         </font>
                        </property>
                        <property name="text">
@@ -2167,7 +2167,7 @@ background-color: rgb(232, 235, 237);</string>
                        </property>
                        <property name="font">
                         <font>
-                         <pointsize>16</pointsize>
+                         <pointsize>20</pointsize>
                         </font>
                        </property>
                        <property name="text">
@@ -2719,7 +2719,7 @@ font-weight: bold;</string>
                     </property>
                     <property name="sizeHint" stdset="0">
                      <size>
-                      <width>450</width>
+                      <width>40</width>
                       <height>20</height>
                      </size>
                     </property>
