@@ -76,8 +76,12 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         self.rightImagePath = None
     
     def switch_to_quick_scan(self):
+        self.image_display_label.clear()
+        self.image_display_label.setText("Image will be displayed here")
+        self.currentImagePath = None
         self.main_stacked_widget.setCurrentIndex(0)
         self.quick_scan_stacked_widget.setCurrentIndex(0)
+        self.report_left_panel_stacked_widget.setCurrentIndex(0)
     
     def switch_to_evolution(self):
         self.main_stacked_widget.setCurrentIndex(1)
@@ -138,13 +142,12 @@ class mainApplication(QMainWindow, Ui_MainWindow):
     
     def switchToLoading(self):
         if self.currentImagePath is not None:
+            self.progress = 0
             self.quick_scan_stacked_widget.setCurrentIndex(1)
-
             # Setup the progress bar
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.updateProgressBar)
             self.timer.start(180)
-            self.progress = 0
 
             # Setup and start the diagnosis thread
             self.thread = QThread()
