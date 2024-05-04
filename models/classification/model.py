@@ -346,7 +346,6 @@ class MetaFormerBlock(nn.Module):
 
 
 class MetaFormerStage(nn.Module):
-
     def __init__(
             self,
             in_chs,
@@ -409,31 +408,6 @@ class MetaFormerStage(nn.Module):
 
 
 class MetaFormer(nn.Module):
-    r""" MetaFormer
-        A PyTorch impl of : `MetaFormer Baselines for Vision`  -
-          https://arxiv.org/abs/2210.13452
-
-    Args:
-        in_chans (int): Number of input image channels.
-        num_classes (int): Number of classes for classification head.
-        global_pool: Pooling for classifier head.
-        depths (list or tuple): Number of blocks at each stage.
-        dims (list or tuple): Feature dimension at each stage.
-        token_mixers (list, tuple or token_fcn): Token mixer for each stage.
-        mlp_act: Activation layer for MLP.
-        mlp_bias (boolean): Enable or disable mlp bias term.
-        drop_path_rate (float): Stochastic depth rate.
-        drop_rate (float): Dropout rate.
-        layer_scale_init_values (list, tuple, float or None): Init value for Layer Scale.
-            None means not use the layer scale. Form: https://arxiv.org/abs/2103.17239.
-        res_scale_init_values (list, tuple, float or None): Init value for res Scale on residual connections.
-            None means not use the res scale. From: https://arxiv.org/abs/2110.09456.
-        downsample_norm (nn.Module): Norm layer used in stem and downsampling layers.
-        norm_layers (list, tuple or norm_fcn): Norm layers for each stage.
-        output_norm: Norm layer before classifier head.
-        use_mlp_head: Use MLP classification head.
-    """
-
     def __init__(
             self,
             in_chans=3,
@@ -543,7 +517,6 @@ class MetaFormer(nn.Module):
         self.head.fc = final
 
     def forward_head(self, x: Tensor, pre_logits: bool = False):
-        # NOTE nn.Sequential in head broken down since can't call head[:-1](x) in torchscript :(
         x = self.head.global_pool(x)
         x = self.head.norm(x)
         x = self.head.flatten(x)

@@ -339,7 +339,7 @@ color: #333333;
 font-weight:bold;</string>
                  </property>
                  <property name="text">
-                  <string>Quick Scan</string>
+                  <string>M-SCAHN Rapid Screen</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -361,6 +361,218 @@ font-weight:bold;</string>
                   </size>
                  </property>
                 </spacer>
+               </item>
+               <item>
+                <widget class="QFrame" name="factors_h_frame">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>60</height>
+                  </size>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_20">
+                  <property name="spacing">
+                   <number>10</number>
+                  </property>
+                  <item>
+                   <spacer name="horizontalSpacer_22">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="ageDropdown">
+                    <property name="minimumSize">
+                     <size>
+                      <width>120</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                    <property name="currentText">
+                     <string>Age</string>
+                    </property>
+                    <item>
+                     <property name="text">
+                      <string>Age</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>10</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>20</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>30</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>40</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>50</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>60</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>70</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>80</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>90</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>100</string>
+                     </property>
+                    </item>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="sexDropdown">
+                    <item>
+                     <property name="text">
+                      <string>Sex</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Male</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Female</string>
+                     </property>
+                    </item>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="locationDropdown">
+                    <property name="minimumSize">
+                     <size>
+                      <width>210</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                    <property name="currentText">
+                     <string>Lesion Location</string>
+                    </property>
+                    <item>
+                     <property name="text">
+                      <string>Lesion Location</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Upper Extremity</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Lower Extremity</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Back</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Abdomen</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Chest</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Face</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Ear</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Neck</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Scalp</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Hand</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Foot</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Acral</string>
+                     </property>
+                    </item>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_23">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                 </layout>
+                </widget>
                </item>
                <item>
                 <widget class="QFrame" name="image_h_frame">
@@ -2331,7 +2543,7 @@ background-color: rgb(232, 235, 237);</string>
                     <property name="minimumSize">
                      <size>
                       <width>690</width>
-                      <height>412</height>
+                      <height>100</height>
                      </size>
                     </property>
                     <property name="maximumSize">
@@ -2346,10 +2558,10 @@ background-color: rgb(232, 235, 237);</string>
                      </font>
                     </property>
                     <property name="styleSheet">
-                     <string notr="true">font-size:30pt</string>
+                     <string notr="true">font-size: 30pt;</string>
                     </property>
                     <property name="text">
-                     <string>Diagnosis: </string>
+                     <string>Predicted Diagnosis: </string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignCenter</set>
@@ -2358,6 +2570,50 @@ background-color: rgb(232, 235, 237);</string>
                      <bool>true</bool>
                     </property>
                    </widget>
+                  </item>
+                  <item>
+                   <spacer name="verticalSpacer_12">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="cancerous_traits_label">
+                    <property name="font">
+                     <font>
+                      <pointsize>28</pointsize>
+                     </font>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font-size: 28pt;</string>
+                    </property>
+                    <property name="text">
+                     <string>Cancerous Traits:</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="verticalSpacer_11">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
                   </item>
                   <item>
                    <widget class="QWidget" name="widget_3" native="true">

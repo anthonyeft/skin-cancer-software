@@ -7,7 +7,7 @@ from process_image import processImage, processLesionEvolution
 from utils import convertArrayToPixmap, ABCWidget
 
 class DiagnosisWorker(QObject):
-    finished = pyqtSignal(str, object, object, object, object, float, float, float)
+    finished = pyqtSignal(str, object, object, object, object, float, float, float, str)
 
     def __init__(self, imagePath):
         super().__init__()
@@ -15,8 +15,8 @@ class DiagnosisWorker(QObject):
 
     def run(self):
         # Perform the image processing algorithms
-        diagnosis, color_constancy_image, contour_image, cam_image, colors_image, asymmetry_score, border_score, color_score = processImage(self.imagePath)
-        self.finished.emit(diagnosis, color_constancy_image, contour_image, cam_image, colors_image, asymmetry_score, border_score, color_score)
+        diagnosis, color_constancy_image, contour_image, cam_image, colors_image, asymmetry_score, border_score, color_score, traits = processImage(self.imagePath)
+        self.finished.emit(diagnosis, color_constancy_image, contour_image, cam_image, colors_image, asymmetry_score, border_score, color_score, traits)
 
 class mainApplication(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -160,8 +160,8 @@ class mainApplication(QMainWindow, Ui_MainWindow):
         else:
             self.image_display_label.setText("Please upload an image before submitting.")
         
-    def diagnosisComplete(self, diagnosis, color_constancy_image, contour_image, cam_image, colors_image, asymmetry_score, border_score, color_score):
-        self.switchToReport(diagnosis, color_constancy_image, contour_image, cam_image, colors_image, asymmetry_score, border_score, color_score)
+    def diagnosisComplete(self, diagnosis, color_constancy_image, contour_image, cam_image, colors_image, asymmetry_score, border_score, color_score, traits):
+        self.switchToReport(diagnosis, traits, color_constancy_image, contour_image, cam_image, colors_image, asymmetry_score, border_score, color_score)
         if self.progress < 100:
             self.progress = 100
             self.progress_bar.setValue(self.progress)
@@ -178,6 +178,7 @@ class mainApplication(QMainWindow, Ui_MainWindow):
     def switchToReport(
     self,
     diagnosis,
+    traits,
     color_constancy_image,
     contour_image,
     cam_image,
@@ -186,7 +187,8 @@ class mainApplication(QMainWindow, Ui_MainWindow):
     border_score,
     color_score,
     ):
-        self.diagnosis_label.setText(f"Diagnosis: {diagnosis}")
+        self.diagnosis_label.setText(f"Predicted diagnosis:\n{diagnosis}")
+        self.cancerous_traits_label.setText(f"Cancerous Traits:\n{traits}")
 
         # Display the original image
         original_image_pixmap = QPixmap(self.currentImagePath)

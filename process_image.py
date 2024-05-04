@@ -39,6 +39,8 @@ diagnosis_mapping = {
     6: "Benign Vascular Lesion"
 }
 
+traits = []
+
 def apply_color_constancy(img, power=6, gamma=1.8):
     img_dtype = img.dtype
     img = img.astype('uint8')
@@ -129,8 +131,10 @@ def calculate_color_asymmetry(image, mask):
 
     if np.linalg.norm(mean_color_left - mean_color_right) > color_asymmetry_threshold:
         color_h = 1
+        traits.append("Horizontal color asymmetry")
     if np.linalg.norm(mean_color_top - mean_color_bottom) > color_asymmetry_threshold:
         color_v = 1
+        traits.append("Vertical color asymmetry")
     
     return color_h, color_v
 
@@ -198,8 +202,10 @@ def calculate_asymmetry(image, mask):
 
     if upper_lower_symmetry / (np.sum(rotated_mask) + 1e-6) > asymmetry_threshold:
         shape_h = 1
+        traits.append("Horizontal shape asymmetry")
     if left_right_symmetry / (np.sum(rotated_mask) + 1e-6) > asymmetry_threshold:
         shape_v = 1
+        traits.append("Vertical shape asymmetry")
 
     color_h, color_v = calculate_color_asymmetry(rotated_image, rotated_mask)
 
@@ -228,6 +234,7 @@ def calculate_border_irregularity(
     circularity = (4 * np.pi * area) / (perimeter ** 2 + 1e-6)
     if 1 - circularity > circularity_threshold:
         points += 1
+        traits.append("Irregular overall shape (circularity)")
     
     # Calculate the convexity
     hull = cv2.convexHull(contour)
@@ -235,6 +242,7 @@ def calculate_border_irregularity(
     convexity = area / (area_hull + 1e-6)
     if convexity < convexity_threshold:
         points += 1
+        traits.append("Irregular border shapes (convexity)")
     
     # Calculate the amount of detected edges within 5px of the boundary
     image = cv2.bilateralFilter(image, 9, 75, 75)
@@ -249,6 +257,7 @@ def calculate_border_irregularity(
 
     if normalized_edge_score > edge_threshold:
         points += 1
+        traits.append("Fine border irregularities (edge detection)")
 
     return points / 3
 
@@ -296,6 +305,7 @@ def calculate_color_count(img, mask):
 
     if color_score > 1:
         color_score = 1
+        traits.append("High number of unique colors")
     
     if color_score < 0:
         color_score = 0
@@ -402,7 +412,10 @@ def processImage(image_path):
     # Save the CAM image
     gradcam_image = save_cam_image(color_constancy_img, cam_image)
 
-    return diagnosis, color_constancy_img, contour_image, gradcam_image, colors_image, asymmetry_score, border_irregularity_score, color_score
+    trait_list = "\n".join(["- " + trait for trait in traits])
+    traits.clear()
+
+    return diagnosis, color_constancy_img, contour_image, gradcam_image, colors_image, asymmetry_score, border_irregularity_score, color_score, trait_list
 
 """
 Final function to process lesion evolution
@@ -452,6 +465,8 @@ def alignMask(mask):
 
     return rotated_mask
 
+import matplotlib.pyplot as plt
+
 def processLesionEvolution(image_path1, image_path2):
     image1, image2 = cv2.imread(image_path1), cv2.imread(image_path2)
     image1, image2 = cv2.cvtColor(image1, cv2.COLOR_BGR2RGB), cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
@@ -485,5 +500,29 @@ def processLesionEvolution(image_path1, image_path2):
     overlay_mask = np.zeros_like(image1)
     overlay_mask[aligned_mask2 == 1] = [255, 0, 0]
     overlay_mask[aligned_mask1 == 1] = [255, 255, 255]
+
+    # Create a 2x2 subplot figure
+    fig, axs = plt.subplots(2, 2, figsize=(10, 10))
+    axs[0, 0].imshow(cv2.resize(binary_mask1, (image1.shape[1], image1.shape[0])), cmap='gray')
+    axs[1, 0].imshow(cv2.resize(binary_mask2, (image2.shape[1], image2.shape[0])), cmap='gray')
+    axs[0, 1].imshow(cv2.resize(aligned_mask1, (image1.shape[1], image1.shape[0])), cmap='gray')
+    axs[1, 1].imshow(cv2.resize(aligned_mask2, (image2.shape[1], image2.shape[0])), cmap='gray')
+
+    # Add dotted lines for horizontal and vertical lines of symmetry
+    height, width, _ = overlay_mask.shape
+    axs[0, 1].plot([0, width], [height/2, height/2], '--', color='red')
+    axs[0, 1].plot([width/2, width/2], [0, height], '--', color='red')
+    axs[1, 1].plot([0, width], [height/2, height/2], '--', color='red')
+    axs[1, 1].plot([width/2, width/2], [0, height], '--', color='red')
+
+    # Remove axis labels
+    for ax in axs.flat:
+        ax.axis('off')
+
+    # Adjust spacing between subplots
+    plt.subplots_adjust(wspace=0.1, hspace=0.1)
+
+    # Show the figure
+    plt.show()
 
     return overlay_mask
