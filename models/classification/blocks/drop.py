@@ -1,3 +1,7 @@
+"""
+Implementation of DropPath (Stochastic Depth) regularization technique.
+This helps with training deep networks by randomly dropping entire paths/branches.
+"""
 import torch.nn as nn
 
 

@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from functools import partial
 
-from models.classification.layers.drop import DropPath
+from models.classification.blocks.drop import DropPath
 
 from itertools import repeat
 import collections.abc

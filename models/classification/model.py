@@ -7,12 +7,12 @@ import torch.nn.functional as F
 from torch import Tensor
 from torch.jit import Final
 
-from .layers.weight_init import trunc_normal_
-from .layers.drop import DropPath
-from .layers.selectpool import SelectAdaptivePool2d
-from .layers.norm import GroupNorm1, LayerNorm, LayerNorm2d
-from .layers.mlp import Mlp
-from .layers.use_fused_attention import use_fused_attn
+from .blocks.weight_init import trunc_normal_
+from .blocks.drop import DropPath
+from .blocks.selectpool import SelectAdaptivePool2d
+from .blocks.norm import GroupNorm1, LayerNorm, LayerNorm2d
+from .blocks.mlp import Mlp
+from .blocks.use_fused_attention import use_fused_attn
 
 
 
