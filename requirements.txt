@@ -10,3 +10,4 @@ pandas
 pyinstaller
 inplace-abn
 grad-cam
+scikit-image
