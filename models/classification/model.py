@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch import Tensor
 from collections import OrderedDict
 
-from .blocks.weight_init import trunc_normal_
+from torch.nn.init import trunc_normal_
 
 from .blocks.drop import DropPath
 from .blocks.selectpool import SelectAdaptivePool2d
@@ -302,6 +302,16 @@ class CAFormerB36(nn.Module):
         x = self.forward_features(x)
         x = self.head(x)
         return x
+    
+    def initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, (nn.Conv2d, nn.Linear)):
+                trunc_normal_(m.weight, std=0.02)
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+            elif isinstance(m, (nn.LayerNorm, LayerNorm2d, LayerNorm2dNoBias, LayerNormNoBias)):
+                nn.init.ones_(m.weight)
+                nn.init.zeros_(m.bias)
 
 
 def caformer_b36(num_classes=7, **kwargs) -> CAFormerB36:
