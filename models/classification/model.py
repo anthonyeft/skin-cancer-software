@@ -4,6 +4,8 @@ import torch.nn.functional as F
 from torch import Tensor
 from collections import OrderedDict
 
+from .blocks.weight_init import trunc_normal_
+
 from .blocks.drop import DropPath
 from .blocks.selectpool import SelectAdaptivePool2d
 from .blocks.norm import LayerNorm, LayerNorm2d

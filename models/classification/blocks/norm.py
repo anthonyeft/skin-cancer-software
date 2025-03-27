@@ -2,33 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .fast_norm import is_fast_norm, fast_group_norm, fast_layer_norm
-
-
-class GroupNorm1(nn.GroupNorm):
-    """Group Normalization with 1 group.
-    
-    A specialized implementation of GroupNorm that always uses a single group,
-    which is equivalent to Instance Normalization but follows the GroupNorm API.
-    
-    Args:
-        num_channels (int): Number of channels in the input tensor
-        **kwargs: Additional arguments passed to nn.GroupNorm
-        
-    Shape:
-        - Input: (batch_size, num_channels, *) where * represents arbitrary spatial dimensions
-        - Output: Same shape as input
-    """
-
-    def __init__(self, num_channels, **kwargs):
-        super().__init__(1, num_channels, **kwargs)
-        self.fast_norm = is_fast_norm()  # Required flag for scripting (can't use globals)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if self.fast_norm:
-            return fast_group_norm(x, self.num_groups, self.weight, self.bias, self.eps)
-        else:
-            return F.group_norm(x, self.num_groups, self.weight, self.bias, self.eps)
+from .fast_norm import is_fast_norm, fast_layer_norm
 
 
 class LayerNorm(nn.LayerNorm):
