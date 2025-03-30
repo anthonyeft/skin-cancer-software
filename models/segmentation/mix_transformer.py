@@ -1,49 +1,56 @@
+"""
+MixVisionTransformer (MiT) implementation for segmentation tasks.
+
+This module implements the MixVisionTransformer architecture which combines 
+hierarchical Transformers with overlapping patch embeddings for efficient 
+semantic segmentation.
+"""
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from functools import partial
+from typing import List, Tuple, Optional, Union, Dict, Any
 
 from models.classification.blocks.drop import DropPath
 
-from itertools import repeat
-import collections.abc
-
-# From PyTorch internals
-def _ntuple(n):
-    def parse(x):
-        if isinstance(x, collections.abc.Iterable) and not isinstance(x, str):
-            return tuple(x)
-        return tuple(repeat(x, n))
-    return parse
-
-to_2tuple = _ntuple(2)
-
 
 class DWConv(nn.Module):
-    def __init__(self, dim=768):
-        super(DWConv, self).__init__()
-        self.dwconv = nn.Conv2d(dim, dim, 3, 1, 1, bias=True, groups=dim)
+    """Depthwise Convolution module used in MLP blocks."""
+    
+    def __init__(self, dim: int = 768):
+        super().__init__()
+        self.dwconv = nn.Conv2d(dim, dim, kernel_size=3, padding=1, groups=dim, bias=True)
 
-    def forward(self, x, H, W):
+    def forward(self, x: torch.Tensor, H: int, W: int) -> torch.Tensor:
         B, N, C = x.shape
-        x = x.transpose(1, 2).view(B, C, H, W)
+        x = x.transpose(1, 2).reshape(B, C, H, W)
         x = self.dwconv(x)
-        x = x.flatten(2).transpose(1, 2)
-
-        return x
+        return x.flatten(2).transpose(1, 2)
 
 
 class Mlp(nn.Module):
-    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.0):
+    """
+    MLP with depthwise convolution for spatial mixing.
+    """
+    def __init__(
+        self, 
+        in_features: int, 
+        hidden_features: Optional[int] = None, 
+        out_features: Optional[int] = None, 
+        act_layer: nn.Module = nn.GELU, 
+        drop: float = 0.0
+    ):
         super().__init__()
         out_features = out_features or in_features
         hidden_features = hidden_features or in_features
+        
         self.fc1 = nn.Linear(in_features, hidden_features)
         self.dwconv = DWConv(hidden_features)
         self.act = act_layer()
         self.fc2 = nn.Linear(hidden_features, out_features)
         self.drop = nn.Dropout(drop)
 
-    def forward(self, x, H, W):
+    def forward(self, x: torch.Tensor, H: int, W: int) -> torch.Tensor:
         x = self.fc1(x)
         x = self.dwconv(x, H, W)
         x = self.act(x)
@@ -54,13 +61,23 @@ class Mlp(nn.Module):
 
 
 class Attention(nn.Module):
-    def __init__(self, dim, num_heads=8, qkv_bias=False, qk_scale=None, attn_drop=0.0, proj_drop=0.0, sr_ratio=1):
+    """
+    Multi-head self-attention with spatial reduction option.
+    """
+    def __init__(
+        self, 
+        dim: int, 
+        num_heads: int = 8, 
+        qkv_bias: bool = False, 
+        attn_drop: float = 0.0, 
+        proj_drop: float = 0.0, 
+        sr_ratio: int = 1
+    ):
         super().__init__()
-
         self.dim = dim
         self.num_heads = num_heads
         head_dim = dim // num_heads
-        self.scale = qk_scale or head_dim**-0.5
+        self.scale = head_dim ** -0.5
 
         self.q = nn.Linear(dim, dim, bias=qkv_bias)
         self.kv = nn.Linear(dim, dim * 2, bias=qkv_bias)
@@ -73,7 +90,7 @@ class Attention(nn.Module):
             self.sr = nn.Conv2d(dim, dim, kernel_size=sr_ratio, stride=sr_ratio)
             self.norm = nn.LayerNorm(dim)
 
-    def forward(self, x, H, W):
+    def forward(self, x: torch.Tensor, H: int, W: int) -> torch.Tensor:
         B, N, C = x.shape
         q = self.q(x).reshape(B, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
 
@@ -86,8 +103,8 @@ class Attention(nn.Module):
             kv = self.kv(x).reshape(B, -1, 2, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         k, v = kv[0], kv[1]
 
-        # Replace manual attention calculation with F.scaled_dot_product_attention
-        x = torch.nn.functional.scaled_dot_product_attention(
+        # Use PyTorch's optimized attention implementation
+        x = F.scaled_dot_product_attention(
             q, k, v, 
             attn_mask=None,
             dropout_p=self.attn_drop.p if self.training else 0.0,
@@ -102,27 +119,28 @@ class Attention(nn.Module):
 
 
 class Block(nn.Module):
+    """
+    Transformer block with self-attention and MLP.
+    """
     def __init__(
         self,
-        dim,
-        num_heads,
-        mlp_ratio=4.0,
-        qkv_bias=False,
-        qk_scale=None,
-        drop=0.0,
-        attn_drop=0.0,
-        drop_path=0.0,
-        act_layer=nn.GELU,
-        norm_layer=nn.LayerNorm,
-        sr_ratio=1,
+        dim: int,
+        num_heads: int,
+        mlp_ratio: float = 4.0,
+        qkv_bias: bool = False,
+        drop: float = 0.0,
+        attn_drop: float = 0.0,
+        drop_path: float = 0.0,
+        act_layer: nn.Module = nn.GELU,
+        norm_layer: nn.Module = nn.LayerNorm,
+        sr_ratio: int = 1,
     ):
         super().__init__()
         self.norm1 = norm_layer(dim)
         self.attn = Attention(
-            dim,
+            dim=dim,
             num_heads=num_heads,
             qkv_bias=qkv_bias,
-            qk_scale=qk_scale,
             attn_drop=attn_drop,
             proj_drop=drop,
             sr_ratio=sr_ratio,
@@ -130,27 +148,40 @@ class Block(nn.Module):
         self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
         self.norm2 = norm_layer(dim)
         mlp_hidden_dim = int(dim * mlp_ratio)
-        self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
+        self.mlp = Mlp(
+            in_features=dim, 
+            hidden_features=mlp_hidden_dim, 
+            act_layer=act_layer, 
+            drop=drop
+        )
 
-    def forward(self, x, H, W):
+    def forward(self, x: torch.Tensor, H: int, W: int) -> torch.Tensor:
         x = x + self.drop_path(self.attn(self.norm1(x), H, W))
         x = x + self.drop_path(self.mlp(self.norm2(x), H, W))
-
         return x
 
 
 class OverlapPatchEmbed(nn.Module):
-    """Image to Patch Embedding"""
-
-    def __init__(self, img_size=224, patch_size=7, stride=4, in_chans=3, embed_dim=768):
+    """
+    Image to Patch Embedding with overlapping patches.
+    """
+    def __init__(
+        self, 
+        img_size: int = 224, 
+        patch_size: int = 7, 
+        stride: int = 4, 
+        in_chans: int = 3, 
+        embed_dim: int = 768
+    ):
         super().__init__()
-        img_size = to_2tuple(img_size)
-        patch_size = to_2tuple(patch_size)
+        img_size = (img_size, img_size) if isinstance(img_size, int) else img_size
+        patch_size = (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
 
         self.img_size = img_size
         self.patch_size = patch_size
-        self.H, self.W = img_size[0] // patch_size[0], img_size[1] // patch_size[1]
+        self.H, self.W = img_size[0] // stride, img_size[1] // stride
         self.num_patches = self.H * self.W
+        
         self.proj = nn.Conv2d(
             in_chans,
             embed_dim,
@@ -160,39 +191,42 @@ class OverlapPatchEmbed(nn.Module):
         )
         self.norm = nn.LayerNorm(embed_dim)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, int, int]:
         x = self.proj(x)
         _, _, H, W = x.shape
         x = x.flatten(2).transpose(1, 2)
         x = self.norm(x)
-
         return x, H, W
 
 
 class MixVisionTransformer(nn.Module):
+    """
+    MixVisionTransformer (MiT) backbone for segmentation.
+    
+    Hierarchical Transformer with four stages of different resolution features.
+    """
     def __init__(
         self,
-        img_size=224,
-        patch_size=16,
-        in_chans=3,
-        num_classes=1000,
-        embed_dims=[64, 128, 256, 512],
-        num_heads=[1, 2, 4, 8],
-        mlp_ratios=[4, 4, 4, 4],
-        qkv_bias=False,
-        qk_scale=None,
-        drop_rate=0.0,
-        attn_drop_rate=0.0,
-        drop_path_rate=0.0,
-        norm_layer=nn.LayerNorm,
-        depths=[3, 4, 6, 3],
-        sr_ratios=[8, 4, 2, 1],
+        img_size: int = 224,
+        patch_size: int = 16,
+        in_chans: int = 3,
+        num_classes: int = 1000,
+        embed_dims: List[int] = [64, 128, 256, 512],
+        num_heads: List[int] = [1, 2, 4, 8],
+        mlp_ratios: List[float] = [4, 4, 4, 4],
+        qkv_bias: bool = False,
+        drop_rate: float = 0.0,
+        attn_drop_rate: float = 0.0,
+        drop_path_rate: float = 0.0,
+        norm_layer: nn.Module = nn.LayerNorm,
+        depths: List[int] = [3, 4, 6, 3],
+        sr_ratios: List[int] = [8, 4, 2, 1],
     ):
         super().__init__()
         self.num_classes = num_classes
         self.depths = depths
 
-        # patch_embed
+        # Patch embeddings
         self.patch_embed1 = OverlapPatchEmbed(
             img_size=img_size, patch_size=7, stride=4, in_chans=in_chans, embed_dim=embed_dims[0]
         )
@@ -206,90 +240,102 @@ class MixVisionTransformer(nn.Module):
             img_size=img_size // 16, patch_size=3, stride=2, in_chans=embed_dims[2], embed_dim=embed_dims[3]
         )
 
-        # transformer encoder
-        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
-        cur = 0
-        self.block1 = nn.ModuleList(
-            [
-                Block(
-                    dim=embed_dims[0],
-                    num_heads=num_heads[0],
-                    mlp_ratio=mlp_ratios[0],
-                    qkv_bias=qkv_bias,
-                    qk_scale=qk_scale,
-                    drop=drop_rate,
-                    attn_drop=attn_drop_rate,
-                    drop_path=dpr[cur + i],
-                    norm_layer=norm_layer,
-                    sr_ratio=sr_ratios[0],
-                )
-                for i in range(depths[0])
-            ]
+        # Create drop path rate schedule
+        self.dpr = torch.linspace(0, drop_path_rate, sum(depths)).tolist()
+        
+        # Create transformer blocks for each stage
+        self._create_stage_blocks(
+            embed_dims, num_heads, mlp_ratios, qkv_bias, drop_rate, attn_drop_rate, norm_layer, sr_ratios
         )
+
+    def _create_stage_blocks(
+        self, 
+        embed_dims: List[int], 
+        num_heads: List[int], 
+        mlp_ratios: List[float], 
+        qkv_bias: bool, 
+        drop_rate: float, 
+        attn_drop_rate: float, 
+        norm_layer: nn.Module, 
+        sr_ratios: List[int]
+    ):
+        """Create transformer blocks for all stages."""
+        # Stage 1
+        cur = 0
+        self.block1 = nn.ModuleList([
+            Block(
+                dim=embed_dims[0],
+                num_heads=num_heads[0],
+                mlp_ratio=mlp_ratios[0],
+                qkv_bias=qkv_bias,
+                drop=drop_rate,
+                attn_drop=attn_drop_rate,
+                drop_path=self.dpr[cur + i],
+                norm_layer=norm_layer,
+                sr_ratio=sr_ratios[0],
+            )
+            for i in range(self.depths[0])
+        ])
         self.norm1 = norm_layer(embed_dims[0])
 
-        cur += depths[0]
-        self.block2 = nn.ModuleList(
-            [
-                Block(
-                    dim=embed_dims[1],
-                    num_heads=num_heads[1],
-                    mlp_ratio=mlp_ratios[1],
-                    qkv_bias=qkv_bias,
-                    qk_scale=qk_scale,
-                    drop=drop_rate,
-                    attn_drop=attn_drop_rate,
-                    drop_path=dpr[cur + i],
-                    norm_layer=norm_layer,
-                    sr_ratio=sr_ratios[1],
-                )
-                for i in range(depths[1])
-            ]
-        )
+        # Stage 2
+        cur += self.depths[0]
+        self.block2 = nn.ModuleList([
+            Block(
+                dim=embed_dims[1],
+                num_heads=num_heads[1],
+                mlp_ratio=mlp_ratios[1],
+                qkv_bias=qkv_bias,
+                drop=drop_rate,
+                attn_drop=attn_drop_rate,
+                drop_path=self.dpr[cur + i],
+                norm_layer=norm_layer,
+                sr_ratio=sr_ratios[1],
+            )
+            for i in range(self.depths[1])
+        ])
         self.norm2 = norm_layer(embed_dims[1])
 
-        cur += depths[1]
-        self.block3 = nn.ModuleList(
-            [
-                Block(
-                    dim=embed_dims[2],
-                    num_heads=num_heads[2],
-                    mlp_ratio=mlp_ratios[2],
-                    qkv_bias=qkv_bias,
-                    qk_scale=qk_scale,
-                    drop=drop_rate,
-                    attn_drop=attn_drop_rate,
-                    drop_path=dpr[cur + i],
-                    norm_layer=norm_layer,
-                    sr_ratio=sr_ratios[2],
-                )
-                for i in range(depths[2])
-            ]
-        )
+        # Stage 3
+        cur += self.depths[1]
+        self.block3 = nn.ModuleList([
+            Block(
+                dim=embed_dims[2],
+                num_heads=num_heads[2],
+                mlp_ratio=mlp_ratios[2],
+                qkv_bias=qkv_bias,
+                drop=drop_rate,
+                attn_drop=attn_drop_rate,
+                drop_path=self.dpr[cur + i],
+                norm_layer=norm_layer,
+                sr_ratio=sr_ratios[2],
+            )
+            for i in range(self.depths[2])
+        ])
         self.norm3 = norm_layer(embed_dims[2])
 
-        cur += depths[2]
-        self.block4 = nn.ModuleList(
-            [
-                Block(
-                    dim=embed_dims[3],
-                    num_heads=num_heads[3],
-                    mlp_ratio=mlp_ratios[3],
-                    qkv_bias=qkv_bias,
-                    qk_scale=qk_scale,
-                    drop=drop_rate,
-                    attn_drop=attn_drop_rate,
-                    drop_path=dpr[cur + i],
-                    norm_layer=norm_layer,
-                    sr_ratio=sr_ratios[3],
-                )
-                for i in range(depths[3])
-            ]
-        )
+        # Stage 4
+        cur += self.depths[2]
+        self.block4 = nn.ModuleList([
+            Block(
+                dim=embed_dims[3],
+                num_heads=num_heads[3],
+                mlp_ratio=mlp_ratios[3],
+                qkv_bias=qkv_bias,
+                drop=drop_rate,
+                attn_drop=attn_drop_rate,
+                drop_path=self.dpr[cur + i],
+                norm_layer=norm_layer,
+                sr_ratio=sr_ratios[3],
+            )
+            for i in range(self.depths[3])
+        ])
         self.norm4 = norm_layer(embed_dims[3])
 
-    def reset_drop_path(self, drop_path_rate):
-        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(self.depths))]
+    def reset_drop_path(self, drop_path_rate: float):
+        """Reset drop path probability for all blocks."""
+        dpr = torch.linspace(0, drop_path_rate, sum(self.depths)).tolist()
+        
         cur = 0
         for i in range(self.depths[0]):
             self.block1[i].drop_path.drop_prob = dpr[cur + i]
@@ -306,81 +352,102 @@ class MixVisionTransformer(nn.Module):
         for i in range(self.depths[3]):
             self.block4[i].drop_path.drop_prob = dpr[cur + i]
 
-    def forward_features(self, x):
+    def _process_stage(self, x: torch.Tensor, patch_embed: nn.Module, blocks: nn.ModuleList, norm: nn.Module) -> torch.Tensor:
+        """Process one stage of the network."""
         B = x.shape[0]
+        x, H, W = patch_embed(x)
+        
+        for blk in blocks:
+            x = blk(x, H, W)
+            
+        x = norm(x)
+        x = x.reshape(B, H, W, -1).permute(0, 3, 1, 2).contiguous()
+        return x
+
+    def forward_features(self, x: torch.Tensor) -> List[torch.Tensor]:
+        """Extract hierarchical features from input image."""
         outs = []
 
-        # stage 1
-        print(x.shape)
-        x, H, W = self.patch_embed1(x)
-        print(x.shape)
-        for i, blk in enumerate(self.block1):
-            x = blk(x, H, W)
-        x = self.norm1(x)
-        x = x.reshape(B, H, W, -1).permute(0, 3, 1, 2).contiguous()
-        print(x.shape)
+        # Stage 1
+        x = self._process_stage(x, self.patch_embed1, self.block1, self.norm1)
         outs.append(x)
 
-        # stage 2
-        x, H, W = self.patch_embed2(x)
-        print(x.shape)
-        for i, blk in enumerate(self.block2):
-            x = blk(x, H, W)
-        x = self.norm2(x)
-        x = x.reshape(B, H, W, -1).permute(0, 3, 1, 2).contiguous()
-        print(x.shape)
+        # Stage 2
+        x = self._process_stage(x, self.patch_embed2, self.block2, self.norm2)
         outs.append(x)
 
-        # stage 3
-        x, H, W = self.patch_embed3(x)
-        print(x.shape)
-        for i, blk in enumerate(self.block3):
-            x = blk(x, H, W)
-        x = self.norm3(x)
-        x = x.reshape(B, H, W, -1).permute(0, 3, 1, 2).contiguous()
-        print(x.shape)
+        # Stage 3
+        x = self._process_stage(x, self.patch_embed3, self.block3, self.norm3)
         outs.append(x)
 
-        # stage 4
-        x, H, W = self.patch_embed4(x)
-        print(x.shape)
-        for i, blk in enumerate(self.block4):
-            x = blk(x, H, W)
-        x = self.norm4(x)
-        x = x.reshape(B, H, W, -1).permute(0, 3, 1, 2).contiguous()
-        print(x.shape)
+        # Stage 4
+        x = self._process_stage(x, self.patch_embed4, self.block4, self.norm4)
         outs.append(x)
 
         return outs
 
-    def forward(self, x):
-        x = self.forward_features(x)
-
-        return x
+    def forward(self, x: torch.Tensor) -> List[torch.Tensor]:
+        """Forward pass returning hierarchical features."""
+        return self.forward_features(x)
 
 
 class MixVisionTransformerEncoder(MixVisionTransformer):
-    def __init__(self, out_channels, depth=5, **kwargs):
+    """
+    MixVisionTransformer encoder for segmentation tasks.
+    
+    Adapts MixVisionTransformer to return features in the format expected by 
+    segmentation decoders.
+    """
+    def __init__(self, out_channels: Tuple[int, ...], depth: int = 5, **kwargs):
         super().__init__(**kwargs)
         self.out_channels = out_channels
         self._depth = depth
         self._in_channels = 3
 
-    def forward(self, x):
-
-        # create dummy output for the first block
-        B, C, H, W = x.shape
+    def forward(self, x: torch.Tensor) -> List[torch.Tensor]:
+        """
+        Forward pass returning a list of tensors with the input and feature maps.
+        
+        Returns:
+            List with [input, dummy tensor for stride-2 features, stride-4 features, ...].
+        """
+        # Create placeholder for stride-2 features (not computed by this encoder)
+        B, _, H, W = x.shape
         dummy = torch.empty([B, 0, H // 2, W // 2], dtype=x.dtype, device=x.device)
 
+        # Return input, dummy placeholder, and computed feature maps
         return [x, dummy] + self.forward_features(x)[: self._depth - 1]
 
-    def load_state_dict(self, state_dict):
+    def load_state_dict(self, state_dict: Dict[str, Any], strict: bool = True) -> nn.Module:
+        """Load state dict, removing classification head if present."""
+        # Remove classification head parameters if present
         state_dict.pop("head.weight", None)
         state_dict.pop("head.bias", None)
-        return super().load_state_dict(state_dict)
+        return super().load_state_dict(state_dict, strict)
 
 
-def get_encoder(name, in_channels=3, depth=5, weights=None, output_stride=32, **kwargs):
+def get_encoder(
+    name: str, 
+    in_channels: int = 3, 
+    depth: int = 5, 
+    weights: Optional[Dict[str, torch.Tensor]] = None, 
+    output_stride: int = 32, 
+    **kwargs
+) -> MixVisionTransformerEncoder:
+    """
+    Create a MixVisionTransformer encoder with the specified parameters.
+    
+    Args:
+        name: Model name identifier
+        in_channels: Number of input channels
+        depth: Depth of encoder (number of returned feature maps)
+        weights: Optional pre-trained weights
+        output_stride: Output stride of the encoder (not used, included for API compatibility)
+        
+    Returns:
+        Configured MixVisionTransformer encoder
+    """
+    # Default parameters for the encoder
     params = {
         "out_channels": (3, 0, 64, 128, 320, 512),
         "patch_size": 4,
@@ -393,7 +460,17 @@ def get_encoder(name, in_channels=3, depth=5, weights=None, output_stride=32, **
         "sr_ratios": [8, 4, 2, 1],
         "drop_rate": 0.0,
         "drop_path_rate": 0.1,
-        "depth": depth
+        "depth": depth,
     }
+    
+    # Update with any custom parameters
+    params.update(kwargs)
+    
+    # Create encoder
     encoder = MixVisionTransformerEncoder(**params)
+    
+    # Load weights if provided
+    if weights is not None:
+        encoder.load_state_dict(weights)
+        
     return encoder
