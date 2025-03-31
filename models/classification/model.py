@@ -252,7 +252,7 @@ class MetaFormerStage(nn.Module):
 
 class CAFormerB36(nn.Module):
     """CAFormer-B36 model implementation."""
-    def __init__(self, in_chans=3, num_classes=7, global_pool='avg', drop_rate=0.0):
+    def __init__(self, in_chans=3, num_classes=7, global_pool='avg', drop_rate=0.0, use_metadata=False, metadata_dim=0, metadata_hidden=64):
         super().__init__()
         
         # Model configuration
@@ -285,24 +285,53 @@ class CAFormerB36(nn.Module):
         self.stages = nn.Sequential(*stages)
         
         # Head
-        self.head = nn.Sequential(OrderedDict([
-            ('global_pool', SelectAdaptivePool2d(pool_type=global_pool)),
-            ('norm', LayerNorm2d(self.num_features)),
-            ('flatten', nn.Flatten(1)),
-            ('drop', nn.Dropout(drop_rate)),
-            ('fc', MlpHead(self.num_features, num_classes, drop_rate=drop_rate))
-        ]))
+        self.use_metadata = use_metadata
+        self.num_classes = num_classes
+        self.num_features = dims[-1]
+        self.drop_rate = drop_rate
+
+        if self.use_metadata:
+            self.metadata_mlp = nn.Sequential(
+                nn.Linear(metadata_dim, metadata_hidden),
+                nn.ReLU(),
+                nn.Linear(metadata_hidden, metadata_hidden),
+                nn.ReLU()
+            )
+            self.head = nn.Sequential(OrderedDict([
+                ('global_pool', SelectAdaptivePool2d(pool_type=global_pool)),
+                ('norm', LayerNorm2d(self.num_features)),
+                ('flatten', nn.Flatten(1)),
+                ('drop', nn.Dropout(drop_rate)),
+                ('fc', MlpHead(self.num_features + metadata_hidden, num_classes, drop_rate=drop_rate))
+            ]))
+        else:
+            self.head = nn.Sequential(OrderedDict([
+                ('global_pool', SelectAdaptivePool2d(pool_type=global_pool)),
+                ('norm', LayerNorm2d(self.num_features)),
+                ('flatten', nn.Flatten(1)),
+                ('drop', nn.Dropout(drop_rate)),
+                ('fc', MlpHead(self.num_features, num_classes, drop_rate=drop_rate))
+            ]))
 
     def forward_features(self, x: Tensor):
         x = self.stem(x)
         x = self.stages(x)
         return x
 
-    def forward(self, x: Tensor):
+    def forward(self, x: Tensor, meta: Tensor = None):
         x = self.forward_features(x)
-        x = self.head(x)
+        x = self.head.global_pool(x)
+        x = self.head.norm(x)
+        x = self.head.flatten(x)
+        x = self.head.drop(x)
+
+        if self.use_metadata and meta is not None:
+            meta_embed = self.metadata_mlp(meta)
+            x = torch.cat([x, meta_embed], dim=1)
+
+        x = self.head.fc(x)
         return x
-    
+
     def initialize_weights(self):
         for m in self.modules():
             if isinstance(m, (nn.Conv2d, nn.Linear)):
