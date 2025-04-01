@@ -10,3 +10,5 @@ pandas==2.2.3
 inplace-abn==1.1.0
 grad-cam==1.5.4
 scikit-image==0.25.2
+onnx
+onnxscript

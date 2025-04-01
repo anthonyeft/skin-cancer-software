@@ -27,7 +27,7 @@ classification_model.eval()
 
 
 target_layers = [classification_model.stages[-1].blocks[-1].norm2]
-cam = EigenGradCAM(model=classification_model, target_layers=target_layers, reshape_transform=reshape_transform, use_cuda=torch.cuda.is_available())
+cam = EigenGradCAM(model=classification_model, target_layers=target_layers, reshape_transform=reshape_transform)
 
 diagnosis_mapping = {
     0: "Melanoma Cancer",
