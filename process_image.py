@@ -12,9 +12,7 @@ from utils import merge_mean_color, _weight_mean_color, reshape_transform
 from pytorch_grad_cam import EigenGradCAM
 import cv2
 
-'''
-Initialize the segmentation and classification models and load the weights.
-'''
+
 segmentation_model = mit_unet()
 segmentation_weights_path = 'C:/weights/mit_unet.pth'
 segmentation_model.load_state_dict(torch.load(segmentation_weights_path, map_location='cpu'))
@@ -77,7 +75,6 @@ def segment_image(image):
     color_constancy_img = apply_color_constancy(image)
     visual_constancy_image = apply_color_constancy_no_gamma(image)
 
-    # Apply test_transform_segmentation to the image for segmentation
     test_transform_segmentation = A.Compose([
         A.Resize(224, 224),
         A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
@@ -86,16 +83,14 @@ def segment_image(image):
     transformed_segmentation = test_transform_segmentation(image=color_constancy_img)
     input_tensor_segmentation = transformed_segmentation['image'].unsqueeze(0)
 
-    # Run segmentation model
     with torch.no_grad():
         mask = segmentation_model(input_tensor_segmentation).squeeze().cpu().numpy()
         mask = cv2.resize(mask, (image.shape[1], image.shape[0]))  # Resize to original image size
 
-    # Threshold the mask to get binary image and find contours
     _, binary_mask = cv2.threshold(mask, 0.5, 1, cv2.THRESH_BINARY)
     contours, _ = cv2.findContours(binary_mask.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Draw contours over the original image
+    # Draw segmentation boundary over the original image
     contour_image = visual_constancy_image.copy()
     cv2.drawContours(contour_image, contours, -1, (0, 255, 0), 3)
 
@@ -124,7 +119,7 @@ def calculate_color_asymmetry(image, mask):
     mean_color_bottom = np.mean(bottom_half[mask[height // 2:, :] > 0], axis=0)
 
     # Define color asymmetry threshold
-    color_asymmetry_threshold = 15  # Adjust this threshold as needed
+    color_asymmetry_threshold = 15
 
     color_h = 0
     color_v = 0
@@ -142,13 +137,12 @@ def calculate_color_asymmetry(image, mask):
 def calculate_asymmetry(image, mask):
     mask = mask.astype(np.uint8) * 255
 
-    # Calculate image moments
     moments = cv2.moments(mask)
 
     if moments['m00'] == 0:
-        return 0  # Return early if mask is empty
+        return 0  # if mask is empty
 
-    # Calculate centroid (center of mass)
+    # Calculate centroid
     cx = int(moments['m10'] / moments['m00'])
     cy = int(moments['m01'] / moments['m00'])
 
@@ -174,14 +168,13 @@ def calculate_asymmetry(image, mask):
     rotation_matrix[0, 2] += tx  # Translation in x
     rotation_matrix[1, 2] += ty  # Translation in y
 
-    # Rotate and translate mask
+    # Rotate and translate mask to center it in the image
     rotated_mask = cv2.warpAffine(mask, rotation_matrix, (mask.shape[1], mask.shape[0]))
     rotated_image = cv2.warpAffine(image, rotation_matrix, (mask.shape[1], mask.shape[0]))
 
     # Calculate symmetry on the rotated mask
-    # Adjust for odd dimensions
     height, width = rotated_mask.shape
-    vertical_split = height // 2 if height % 2 == 0 else height // 2 + 1
+    vertical_split = height // 2 if height % 2 == 0 else height // 2 + 1 # Adjust for odd dimensions
     horizontal_split = width // 2 if width % 2 == 0 else width // 2 + 1
 
     # Calculate the vertical axis symmetry
@@ -244,7 +237,7 @@ def calculate_border_irregularity(
         points += 1
         traits.append("Irregular border shapes (convexity)")
     
-    # Calculate the amount of detected edges within 5px of the boundary
+    # Calculate the amount of detected sharp edges within 5px of the boundary
     image = cv2.bilateralFilter(image, 9, 75, 75)
     edges = cv2.Canny(image, 100, 100)
     kernel = np.ones((40, 40), np.uint8)
